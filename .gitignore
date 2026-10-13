@@ -1,0 +1,18 @@
+# 套件（Vercel 會自己安裝，不用上傳）
+node_modules/
+# 建置產物
+.next/
+out/
+build/
+*.tsbuildinfo
+next-env.d.ts
+# ⚠ 機密：環境變數檔案絕對不能上傳
+.env
+.env.local
+.env.*.local
+.env.production
+# 其他
+.vercel
+.DS_Store
+Thumbs.db
+npm-debug.log*

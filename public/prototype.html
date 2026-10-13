@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>社群經營工作台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#EDF0EE;--panel:#FFFFFF;--panel2:#F6F8F7;--ink:#16222A;--muted:#5E6E77;--line:#D8DFDC;
+  --brand:#1B6B6F;--brand-soft:#DCEEEE;--brand-ink:#FFFFFF;
+  --warn:#9A5B00;--warn-soft:#FFF0D6;--danger:#B3261E;--danger-soft:#FBE3E0;--ok:#2C7A4B;--ok-soft:#DDF1E4;
+  --side:#16222A;--side-ink:#C9D6DC;
+  --font:"Noto Sans TC","PingFang TC","Microsoft JhengHei","Heiti TC",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1619;--panel:#172025;--panel2:#1D282E;--ink:#E6EDF0;--muted:#92A4AD;--line:#2A363D;
+    --brand:#5CC0C4;--brand-soft:#1B3B3E;--brand-ink:#0B1A1C;
+    --warn:#F0B25A;--warn-soft:#3A2D12;--danger:#F28B82;--danger-soft:#3D1F1D;--ok:#7CCB9A;--ok-soft:#16301F;
+    --side:#0B1114;--side-ink:#9FB1B9;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1619;--panel:#172025;--panel2:#1D282E;--ink:#E6EDF0;--muted:#92A4AD;--line:#2A363D;
+  --brand:#5CC0C4;--brand-soft:#1B3B3E;--brand-ink:#0B1A1C;
+  --warn:#F0B25A;--warn-soft:#3A2D12;--danger:#F28B82;--danger-soft:#3D1F1D;--ok:#7CCB9A;--ok-soft:#16301F;
+  --side:#0B1114;--side-ink:#9FB1B9;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:15px/1.65 var(--font);-webkit-font-smoothing:antialiased}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+#app{display:grid;grid-template-columns:224px 1fr;height:100%;min-height:0}
+/* sidebar */
+#nav{background:var(--side);color:var(--side-ink);display:flex;flex-direction:column;padding:14px 10px;gap:2px;overflow:auto}
+#nav .logo{padding:6px 10px 12px;color:#fff;font-weight:700;font-size:16px;line-height:1.3}
+#nav .logo small{display:block;font-weight:400;font-size:12px;color:var(--side-ink);margin-top:2px}
+#nav .grp{font-size:11px;letter-spacing:.08em;color:#7F929B;padding:12px 10px 4px}
+#nav button{background:none;border:0;color:inherit;text-align:left;padding:8px 10px;border-radius:6px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px}
+#nav button span.ic{width:22px;display:inline-block}
+#nav button:hover{background:rgba(255,255,255,.07)}
+#nav button.on{background:rgba(255,255,255,.14);color:#fff;font-weight:700}
+#nav .badge{background:var(--danger);color:#fff;border-radius:999px;font-size:11px;padding:0 7px;min-width:20px;text-align:center}
+#nav .badge.w{background:#C77A00}
+#nav .me{margin-top:auto;padding:12px 10px 4px;font-size:12px;border-top:1px solid rgba(255,255,255,.12)}
+#nav .me b{color:#fff;display:block;font-size:13px}
+#nav .theme{font-size:12px;opacity:.85;margin-top:6px}
+#wrap{display:flex;flex-direction:column;min-width:0;min-height:0}
+#top{display:flex;gap:6px;align-items:center;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap;min-height:48px}
+#top .lbl{color:var(--muted);font-size:12px;margin-right:4px}
+.chip{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:3px 12px;font-size:13px;display:inline-flex;align-items:center;gap:6px}
+.chip.on{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.chip.ai{margin-left:auto;font-weight:500}
+.chip.ai.ok{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.chip.ai.warn{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.chip.ai.bad{background:var(--danger-soft);color:var(--danger);border-color:transparent}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
+#main{flex:1;min-height:0;overflow:auto;padding:20px;max-width:100%}
+#main.inboxmode{padding:0;overflow:hidden}
+.demo{background:var(--warn-soft);color:var(--warn);font-size:12px;padding:4px 16px;border-bottom:1px solid var(--line)}
+.page{max-width:1100px;margin:0 auto}
+.help{background:var(--brand-soft);color:var(--ink);border-radius:8px;padding:10px 14px;margin:0 0 16px;font-size:14px;display:flex;gap:8px}
+.help b{color:var(--brand)}
+/* inbox */
+#inbox{display:grid;grid-template-columns:minmax(300px,360px) minmax(0,1fr) 300px;height:100%;min-height:0}
+#list,#detail,#side{overflow:auto;min-height:0;min-width:0}
+#list{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column}
+#side{background:var(--panel);border-left:1px solid var(--line);padding:14px}
+#detail{padding:16px}
+.filters{padding:10px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:6px;position:sticky;top:0;background:var(--panel);z-index:2}
+.filters input[type=search]{grid-column:1/-1}
+.filters input,.filters select{border:1px solid var(--line);background:var(--panel2);border-radius:6px;padding:5px 8px;min-width:0}
+.filters label{grid-column:1/-1;font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:center}
+.row{position:relative;padding:10px 12px 12px 14px;border-bottom:1px solid var(--line);cursor:pointer;display:block;width:100%;text-align:left;background:none;border-left:0;border-right:0;border-top:0}
+.row:hover{background:var(--panel2)}
+.row.sel{background:var(--brand-soft)}
+.row .bar{position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--line)}
+.row.over .bar{background:var(--danger)}.row.near .bar{background:var(--warn)}.row.ok .bar{background:var(--brand)}.row.met .bar{background:var(--ok)}
+.row .meta{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.row .txt{margin:3px 0 6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.row .foot{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.prog{height:3px;background:var(--line);border-radius:2px;margin-top:8px;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--brand)}
+.row.near .prog i{background:var(--warn)}.row.over .prog i{background:var(--danger)}
+.pf{font-size:10px;font-weight:700;color:#fff;border-radius:4px;padding:0 5px;line-height:17px}
+.tag{font-size:12px;border-radius:4px;padding:0 7px;line-height:20px;background:var(--panel2);border:1px solid var(--line);color:var(--ink);display:inline-block}
+.tag.brand{background:var(--brand-soft);border-color:transparent;color:var(--brand)}
+.tag.danger{background:var(--danger-soft);border-color:transparent;color:var(--danger)}
+.tag.ok{background:var(--ok-soft);border-color:transparent;color:var(--ok)}
+.tag.warn{background:var(--warn-soft);border-color:transparent;color:var(--warn)}
+.sla{font-size:12px;font-weight:700}
+.sla.over{color:var(--danger)}.sla.near{color:var(--warn)}.sla.ok{color:var(--brand)}.sla.met{color:var(--ok)}.sla.late{color:var(--danger)}.sla.na{color:var(--muted);font-weight:400}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px}
+.card h3{margin:0 0 8px;font-size:15px}
+.card h4{margin:12px 0 6px;font-size:13px;color:var(--muted);font-weight:500}
+.hd{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap;margin-bottom:14px}
+.hd h2{margin:0;font-size:20px;line-height:1.4}
+.sub{color:var(--muted);font-size:13px}
+.bubble{background:var(--panel2);border-radius:4px 14px 14px 14px;padding:10px 14px;border:1px solid var(--line);font-size:15px}
+.bubble.brandside{background:var(--brand-soft);border-color:transparent;border-radius:14px 4px 14px 14px;margin-left:36px}
+.post{border-left:3px solid var(--line);padding:2px 12px;color:var(--muted);font-size:13px;margin-bottom:10px}
+.slabox{border-radius:8px;padding:8px 12px;margin-bottom:12px;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px}
+.slabox.over{background:var(--danger-soft);color:var(--danger)}.slabox.near{background:var(--warn-soft);color:var(--warn)}.slabox.ok{background:var(--brand-soft);color:var(--brand)}.slabox.met{background:var(--ok-soft);color:var(--ok)}.slabox.late{background:var(--danger-soft);color:var(--danger)}.slabox.na{background:var(--panel2);color:var(--muted)}
+.slabox b{font-size:15px}
+textarea{width:100%;min-height:104px;border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--panel);resize:vertical}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:7px 14px;font-size:14px}
+.btn:hover{background:var(--panel2)}
+.btn.pri{background:var(--brand);color:var(--brand-ink);border-color:var(--brand);font-weight:500}
+.btn.pri:hover{filter:brightness(1.08)}
+.btn.danger{color:var(--danger);border-color:var(--danger)}
+.btn.sm{padding:2px 10px;font-size:12px;border-radius:6px}
+.btn[disabled],textarea[disabled],select[disabled]{opacity:.5;cursor:not-allowed}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--panel);padding:5px 12px;font-size:13px;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--brand);color:var(--brand-ink)}
+.kv{display:grid;grid-template-columns:76px 1fr;gap:4px 8px;font-size:13px}
+.kv dt{color:var(--muted)}.kv dd{margin:0}
+.warnbox{background:var(--warn-soft);color:var(--warn);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:13px}
+.infobox{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:13px;margin:10px 0}
+.empty{padding:40px 16px;text-align:center;color:var(--muted)}
+.kb{border:1px dashed var(--line);border-radius:6px;padding:8px 10px;margin-top:8px;font-size:13px;background:var(--panel2)}
+select,input[type=text],input[type=number],input[type=email],input[type=password]{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:6px 10px;min-width:0}
+.grid{display:grid;gap:12px}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.kpi .v{font-size:26px;font-weight:700;line-height:1.2}
+.kpi .l{font-size:12px;color:var(--muted)}
+.kpi.over .v{color:var(--danger)}.kpi.near .v{color:var(--warn)}.kpi.good .v{color:var(--ok)}
+button.kpi{text-align:left;width:100%}
+button.kpi:hover{border-color:var(--brand)}
+.two{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.three{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.hbar{display:grid;grid-template-columns:96px 1fr 56px;gap:8px;align-items:center;font-size:13px;margin:5px 0}
+.hbar .t{height:10px;background:var(--panel2);border-radius:5px;overflow:hidden}
+.hbar .t i{display:block;height:100%;background:var(--brand);border-radius:5px}
+.hbar .t i.w{background:var(--warn)}.hbar .t i.d{background:var(--danger)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+th{color:var(--muted);font-weight:500;font-size:12px}
+.tblwrap{overflow-x:auto}
+.sw{position:relative;width:38px;height:22px;display:inline-block;flex:none}
+.sw input{opacity:0;width:100%;height:100%;margin:0;position:absolute;cursor:pointer;z-index:1}
+.sw i{position:absolute;inset:0;background:var(--line);border-radius:11px;transition:background .15s}
+.sw i::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .15s}
+.sw input:checked+i{background:var(--brand)}.sw input:checked+i::after{transform:translateX(16px)}
+.sw input:focus-visible+i{outline:2px solid var(--brand);outline-offset:2px}
+.field{display:grid;gap:4px;margin-bottom:12px}
+.field label{font-size:13px;color:var(--muted)}
+.field input[type=text],.field input[type=email],.field input[type=password],.field textarea,.field select{width:100%}
+.field textarea{min-height:70px}
+input[type=range]{width:100%;accent-color:var(--brand)}
+.chk{width:18px;height:18px;accent-color:var(--brand)}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--panel);padding:8px 16px;border-radius:8px;opacity:0;pointer-events:none;transition:.2s;z-index:80;font-size:14px}
+#toast.show{opacity:1;transform:translateX(-50%)}
+.back{display:none}
+/* new */
+.choice{display:flex;gap:8px;flex-wrap:wrap}
+.cb{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:5px 14px;font-size:14px}
+.cb:hover{border-color:var(--brand)}
+.cb.on{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.opt{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:12px 14px;margin-bottom:8px}
+.opt:hover{border-color:var(--brand)}
+.opt.on{border-color:var(--brand);background:var(--brand-soft)}
+.opt b{display:block}
+.steps{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.steps div{flex:1;min-width:110px;border-top:4px solid var(--line);padding-top:6px;font-size:13px;color:var(--muted)}
+.steps div.on{border-color:var(--brand);color:var(--ink);font-weight:700}
+.steps div.done{border-color:var(--ok);color:var(--ok)}
+.q{margin-bottom:20px}
+.q .l{font-weight:700;display:block;margin-bottom:2px}
+.q .h{font-size:13px;color:var(--muted);margin-bottom:6px}
+.q input[type=text],.q textarea{width:100%}
+.bcard{border-left:6px solid var(--brand)}
+.meter{height:10px;background:var(--panel2);border-radius:5px;overflow:hidden;margin:6px 0}
+.meter i{display:block;height:100%;background:var(--ok)}
+.meter i.w{background:var(--warn)}.meter i.d{background:var(--danger)}
+.keyrow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+.zone{border:1px solid var(--danger);border-radius:10px;padding:14px;background:var(--danger-soft)}
+.ck{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.ck .m{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);display:inline-flex;align-items:center;justify-content:center;font-size:12px;flex:none}
+.ck.done .m{background:var(--ok);border-color:var(--ok);color:#fff}
+.mask{position:fixed;inset:0;background:rgba(10,18,22,.55);z-index:60;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:var(--panel);border-radius:12px;max-width:560px;width:100%;max-height:calc(100% - 20px);overflow:auto;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.modal h3{margin:0 0 4px;font-size:18px}
+@media (max-width:1180px){
+  #inbox{grid-template-columns:minmax(280px,340px) minmax(0,1fr)}
+  #side{display:none}
+}
+@media (max-width:860px){
+  #app{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+  #nav{flex-direction:row;overflow-x:auto;padding:6px;gap:4px}
+  #nav .logo,#nav .me,#nav .grp{display:none}
+  #nav button{white-space:nowrap;flex:none}
+  #main{padding:12px}
+  .chip.ai{margin-left:0}
+}
+@media (max-width:640px){
+  #inbox{grid-template-columns:1fr}
+  #inbox #detail{display:none}
+  #inbox.open #list{display:none}
+  #inbox.open #detail{display:block}
+  .back{display:inline-block;margin-bottom:10px}
+  #side{display:block;border-left:0;border-top:1px solid var(--line)}
+  #inbox:not(.open) #side{display:none}
+  .two,.three{grid-template-columns:1fr}
+  .hbar{grid-template-columns:72px 1fr 44px}
+}
+
+/* 小助手 */
+#asBtn{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:70;background:var(--brand);color:var(--brand-ink);border:0;border-radius:999px;padding:0 18px;min-height:48px;display:flex;align-items:center;gap:8px;font-size:15px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+#asPanel{position:fixed;right:16px;bottom:16px;width:380px;max-width:calc(100vw - 32px);height:min(620px,calc(100vh - 32px));z-index:75;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.35);flex-direction:column;overflow:hidden}
+.ashd{display:flex;gap:10px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.asav{width:36px;height:36px;border-radius:50%;background:var(--panel2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--muted);flex:none}
+.asbody{flex:1;overflow:auto;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.asnote{font-size:12px;color:var(--muted);background:var(--panel2);border-radius:8px;padding:6px 10px}
+.asmsg{max-width:92%;padding:8px 12px;border-radius:12px;font-size:14px;line-height:1.6}
+.asmsg.bot{background:var(--panel2);border:1px solid var(--line);align-self:flex-start}
+.asmsg.user{background:var(--brand);color:var(--brand-ink);align-self:flex-end}
+.aschips{display:flex;gap:6px;flex-wrap:wrap}
+.asin{display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--line)}
+.asin input{flex:1;min-width:0}
+@media (max-width:640px){#asPanel{inset:0;width:100%;max-width:none;height:100%;border-radius:0;right:0;bottom:0}}
+@media (max-width:1024px){.btn,.cb,.chip,#nav button,select,input[type=text],input[type=number],input[type=email],input[type=password],.opt{min-height:44px}.sw{min-height:0}.chk{width:22px;height:22px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <nav id="nav" aria-label="主選單"></nav>
+  <div id="wrap">
+    <div class="demo">原型示範：資料、AI 回覆與連接流程都是模擬，用來確認操作與設計；正式版才會真的串接 Instagram 與 AI 供應商。</div>
+    <div id="top"></div>
+    <main id="main"></main>
+  </div>
+</div>
+<div id="modal"></div>
+<div id="toast" role="status"></div>
+
+<script>
+/* ================= 基本資料 ================= */
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const T0=Date.now();
+const PALETTE=['#7A5BD0','#2E8B57','#1E88C7','#C2410C','#B83280','#0F766E','#7C6A0A'];
+const PF={'FB 粉專':['FB','#3B5BA9'],'FB 廣告':['FB','#3B5BA9'],'IG 貼文':['IG','#B13A86'],'IG Reels':['IG','#B13A86'],'YouTube':['YT','#C4302B'],'Shorts':['YT','#C4302B'],'Google 評論':['G','#3A7D44']};
+const MODES={manual:'人工處理',suggest:'AI 建議＋人工確認',auto:'AI 自動回覆'};
+const TYPES={
+ '一般互動':{sla:60,mode:'suggest',on:true},'稱讚':{sla:60,mode:'auto',on:true},'產品詢問':{sla:30,mode:'suggest',on:true},
+ '價格詢問':{sla:30,mode:'suggest',on:true},'購買詢問':{sla:30,mode:'suggest',on:true},'使用方式':{sla:60,mode:'suggest',on:true},
+ '售後問題':{sla:30,mode:'suggest',on:true},'客訴':{sla:15,mode:'manual',on:true},'負面評論':{sla:30,mode:'manual',on:true},
+ '商業合作':{sla:30,mode:'manual',on:true},'大量採購':{sla:30,mode:'manual',on:true},'潛在商機':{sla:30,mode:'suggest',on:true},
+ '垃圾訊息':{sla:0,mode:'manual',on:true},'惡意留言':{sla:0,mode:'manual',on:true},'無需回覆':{sla:0,mode:'manual',on:true},'其他':{sla:60,mode:'suggest',on:true}
+};
+const toneOf=t=>['客訴','負面評論','惡意留言'].includes(t)?'danger':['購買詢問','大量採購','潛在商機','商業合作'].includes(t)?'ok':['垃圾訊息','無需回覆'].includes(t)?'':'brand';
+const STATUS=['待處理','處理中','等待對方','已轉交','無需處理','已完成'];
+const DONE=['已完成','無需處理'];
+const ROLES={'管理員':'可以管理品牌、成員、IG 連接、AI 設定與所有規則','主管':'可以查看所有數據、調整案件、介入處理，不能改 AI 與 IG 設定','操作人員':'只能處理自己負責品牌的留言'};
+const PROV={OpenAI:{pre:/^sk-/,hint:'通常以 sk- 開頭'},'Claude (Anthropic)':{pre:/^sk-ant-/,hint:'通常以 sk-ant- 開頭'},'Google Gemini':{pre:/^AIza/,hint:'通常以 AIza 開頭'},'其他（自訂）':{pre:/^.{16,}$/,hint:'依你的供應商而定，至少 16 個字元',custom:1}};
+const TESTR={ok:['成功','tag ok','連線成功，模型可以回應。'],net:['連不到','tag danger','連不到這個位址，請確認 API 位址是否正確、對方服務是否正常。'],auth:['憑證錯誤','tag danger','對方拒絕了這把金鑰，請確認金鑰是否正確、是否過期。'],model:['模型不可用','tag warn','這個模型名稱不存在或你的帳號沒有權限使用。'],quota:['超額','tag warn','對方回報額度已用完，請到供應商後台確認用量或儲值。']};
+function urlCheck(u){
+  u=String(u||'').trim();if(!u)return '請填 API 位址';
+  let x;try{x=new URL(u)}catch(e){return '位址格式不正確，例如 https://api.example.com/v1'}
+  if(x.protocol!=='https:')return '只能使用 https:// 開頭的位址（為了保護金鑰不被偷看）';
+  const h=x.hostname.toLowerCase();
+  if(h==='localhost'||h.endsWith('.local')||h.endsWith('.internal')||h.endsWith('.localhost'))return '不能使用本機或內部網路位址（安全限制）';
+  if(/^\[.*\]$/.test(h)&&(/^\[(::1?|fe80|fc|fd)/i.test(h)))return '不能使用本機或內部網路位址（安全限制）';
+  const m4=h.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
+  if(m4){const a=+m4[1],b=+m4[2];if(a===10||a===127||a===0||(a===169&&b===254)||(a===192&&b===168)||(a===172&&b>=16&&b<=31))return '不能使用本機或內部網路位址（安全限制）'}
+  return '';
+}
+
+const S={
+ me:'阿哲',view:'home',brand:'all',sel:null,open:false,seq:100,
+ f:{pf:'all',st:'all',pri:'all',sla:'all',type:'all',ai:false,q:''},
+ stats:{sug:42,adopt:31,edit:12,auto:14,human:9,gap:3},
+ log:[],batchSel:'g1',bd:null,kbEdit:null,wiz:null,modal:null,
+ brands:[{id:'b1',name:'暖屋生活',c:'#7A5BD0',desc:'居家小家電'},{id:'b2',name:'森活寵物',c:'#2E8B57',desc:'寵物用品'},{id:'b3',name:'澄澈淨水',c:'#1E88C7',desc:'家用淨水'}],
+ profiles:{
+  b1:{name:'暖屋生活',category:'居家小家電',personality:'親切鄰家',addr:'您',emoji:'少量',ban:'最便宜、保證、絕對',products:'折疊烘衣機 NT$3,490\n氣炸鍋 NT$2,290',hours:'週一至週五 10:00–18:00',ship:'下單後 3 個工作天內出貨',refund:'7 天鑑賞期，需保持商品完整',complaint:'AI 先致歉並請客人私訊,再轉真人',nopromise:['退款','補償','出貨時間'],contact:'service@warmhome.example'},
+  b2:{name:'森活寵物',category:'寵物用品',personality:'活潑有趣',addr:'你',emoji:'常用',ban:'便宜貨、保證有效',products:'自動餵食器 NT$1,980\n貓咪自動飲水機 NT$890',hours:'每天 09:00–21:00',ship:'現貨 2 天內出貨',refund:'7 天鑑賞期',complaint:'一律轉給真人處理',nopromise:['醫療說法','退款','折扣'],contact:'LINE @forestpet'},
+  b3:{name:'澄澈淨水',category:'家用淨水',personality:'專業可靠',addr:'您',emoji:'不使用',ban:'神奇、完全去除、百分之百',products:'X2 淨水器 NT$2,980（保固一年）',hours:'週一至週五 09:00–18:00',ship:'3–5 個工作天到貨',refund:'保固一年，非人為損壞可免費維修',complaint:'一律轉給真人處理',nopromise:['水質療效','退款','補償'],contact:'0800-000-000'}
+ },
+ brandCfg:{
+  b1:{personality:'溫暖、有生活感的鄰家朋友',formal:35,humor:55,len:40,emoji:'少量',addr:'您',words:'好物、日常、暖暖的',ban:'最便宜、保證、絕對',nopromise:'退款、補償、保證到貨時間'},
+  b2:{personality:'活潑愛玩、愛毛孩的夥伴',formal:20,humor:75,len:45,emoji:'常用',addr:'你',words:'毛孩、汪喵、開心',ban:'便宜貨、保證有效',nopromise:'醫療建議、退款、折扣'},
+  b3:{personality:'可靠、專業的飲水顧問',formal:70,humor:10,len:50,emoji:'不使用',addr:'您',words:'安心、潔淨、專業',ban:'神奇、完全去除、百分之百',nopromise:'水質療效、退款、補償'}
+ },
+ kb:[
+  {id:1,b:'b3',cat:'產品',title:'X2 淨水器規格與售價（NT$2,980，保固一年）',on:true,d:'10/02'},
+  {id:2,b:'b3',cat:'售後',title:'漏水處理流程：請客人私訊訂單編號與照片後轉客服',on:true,d:'09/20'},
+  {id:3,b:'b1',cat:'產品',title:'折疊烘衣機規格：容量約 5 公斤、可烘 8～10 件日常衣物',on:true,d:'09/28'},
+  {id:4,b:'b2',cat:'教學',title:'自動餵食器 Wi-Fi 連線教學（僅支援 2.4GHz）',on:true,d:'09/15'},
+  {id:5,b:'b2',cat:'政策',title:'批發與採購：統一由業務窗口報價，AI 不得給折扣',on:true,d:'08/30'},
+  {id:6,b:'b1',cat:'活動',title:'雙 11 活動辦法（草稿，尚未生效）',on:false,d:'10/05'}
+ ],
+ pendingEx:[{id:1,b:'b2',q:'請問餵食器可以餵濕食嗎？',a:'您好～這款適用乾糧喔，濕食建議手動餵食，避免堵塞 🐾',by:'小琪'}],
+ ig:[{id:'i1',handle:'@warmhome.official',type:'商業帳號',kind:'公司',brand:'b1',via:'Instagram 登入',status:'已連接',dev:true,date:'10/03',by:'阿哲'}],
+ team:[
+  {id:'t1',name:'阿哲',email:'zhe@example.com',role:'管理員',brands:'all',note:'負責整體設定',active:true},
+  {id:'t2',name:'小琪',email:'chi@example.com',role:'操作人員',brands:['b2'],lead:['b2'],note:'寵物品牌主要窗口',active:true},
+  {id:'t3',name:'Ruby',email:'ruby@example.com',role:'主管',brands:'all',note:'處理商業合作與重大客訴',active:true},
+  {id:'t4',name:'志豪',email:'hao@example.com',role:'操作人員',brands:['b3','b2'],lead:['b3'],note:'週末值班',active:true}
+ ],
+ aiKeys:[
+  {id:'k1',provider:'OpenAI',label:'公司主力',last4:'7f2a',budget:20,used:6.4,tok:560000,status:'正常',enabled:true,added:'09/10'},
+  {id:'k2',provider:'Claude (Anthropic)',label:'備用',last4:'c91d',budget:15,used:2.1,tok:260000,status:'正常',enabled:true,added:'09/12'},
+  {id:'k3',provider:'Google Gemini',label:'測試用',last4:'3b0e',budget:5,used:4.7,tok:190000,status:'正常',enabled:true,added:'09/20'}
+ ],
+ failover:{budget:true,error:true,notify:true},
+ brandAI:{b1:{classify:'k2',reply:'k1',backup:'k2',manual:''},b2:{classify:'k3',reply:'k1',backup:'k2',manual:''},b3:{classify:'k2',reply:'k2',backup:'k1',manual:''}},
+ use:{
+  daily:[['10/3',1.6,200],['10/4',1.9,235],['10/5',1.7,200],['10/6',2.4,280],['10/7',2.3,260],['10/8',1.5,180],['10/9',1.8,215]].map(a=>({d:a[0],cost:a[1],calls:a[2]})),
+  byBrand:{b1:{calls:640,tok:410000,cost:5.4},b2:{calls:510,tok:330000,cost:4.3},b3:{calls:420,tok:270000,cost:3.5}},
+  byTask:{classify:{calls:900,tok:310000,cost:2.4},reply:{calls:670,tok:700000,cost:10.8}},
+  failovers:2
+ },
+ ck:{privacy:false,deletion:false,biz:false,review:false,testers:true},
+ comments:[]
+};
+const brandOf=id=>S.brands.find(b=>b.id===id)||{id,name:'（已刪除的品牌）',c:'#999'};
+const aiKey=id=>S.aiKeys.find(k=>k.id===id);
+const teamNames=()=>S.team.filter(t=>t.active).map(t=>t.name);
+const meRole=()=>(S.team.find(t=>t.name===S.me)||{}).role||'操作人員';
+
+const C=o=>S.comments.push(Object.assign({id:S.comments.length+1,tags:[],risk:'低',status:'待處理',owner:null,lock:null,first:null,by:null,group:null,notes:[],ctx:[],sent:[],styleIdx:0,draft:null,follow:false,kbOpen:false},o,{created:T0-o.age*60000}));
+const R=(style,text)=>({style,text});
+C({brand:'b3',pf:'FB 廣告',post:'夏季淨水器廣告：X2 限時活動',u:'林佳蓉',text:'請問多少錢？',age:12,type:'價格詢問',tags:['詢價'],pri:'中',group:'g1',ai:{conf:94,action:'建議回覆價格並附商品連結',kb:[1],replies:[]}});
+C({brand:'b3',pf:'FB 廣告',post:'夏季淨水器廣告：X2 限時活動',u:'Kevin Chen',text:'請問售價',age:14,type:'價格詢問',tags:['詢價'],pri:'中',group:'g1',ai:{conf:95,action:'建議回覆價格並附商品連結',kb:[1],replies:[]}});
+C({brand:'b3',pf:'FB 廣告',post:'夏季淨水器廣告：X2 限時活動',u:'王淑華',text:'價格？',age:9,type:'價格詢問',tags:['詢價'],pri:'中',group:'g1',ai:{conf:92,action:'建議回覆價格並附商品連結',kb:[1],replies:[]}});
+C({brand:'b3',pf:'FB 廣告',post:'夏季淨水器廣告：X2 限時活動',u:'Tina Wu',text:'一組多少？',age:22,type:'價格詢問',tags:['詢價'],pri:'中',group:'g1',ai:{conf:88,action:'建議回覆價格並附商品連結',kb:[1],replies:[]}});
+C({brand:'b3',pf:'FB 廣告',post:'夏季淨水器廣告：X2 限時活動',u:'吳宗翰',text:'X2 多少錢～想買兩台',age:3,type:'價格詢問',tags:['詢價','購買意願'],pri:'中',group:'g1',ai:{conf:90,action:'建議回覆價格並附商品連結',kb:[1],replies:[]}});
+C({brand:'b3',pf:'FB 粉專',post:'X2 淨水器開箱分享',u:'陳怡君',text:'這個多少錢？我上次買的還漏水，你們品質到底怎樣？',age:41,type:'客訴',tags:['詢價','產品問題','負面情緒','高優先處理'],pri:'高',risk:'高',
+  ctx:['陳怡君：上次買的那台用了兩週就開始滴水','（尚無品牌回覆）'],
+  ai:{conf:81,action:'不可自動回覆：已提升優先級並交由人工處理',kb:[1,2],replies:[
+   R('親切','您好，聽到您的淨水器發生漏水，真的很抱歉造成困擾。X2 目前售價為 NT$2,980。為了盡快協助您，請私訊提供訂購人姓名與聯絡電話，專人會優先與您聯繫處理。'),
+   R('專業','您好，關於您反映的漏水狀況我們非常重視。請私訊提供訂單資訊與現場照片，客服團隊會盡速與您聯繫確認處理方式。')]}});
+C({brand:'b1',pf:'IG Reels',post:'Reels：氣炸鍋早餐 5 分鐘',u:'mei_lovehome',text:'好想要！顏色超可愛😍',age:25,type:'稱讚',tags:['稱讚','正面情緒'],pri:'低',ai:{conf:96,action:'符合自動回覆條件（低風險、信心 96%）',kb:[],replies:[
+   R('活潑','謝謝你喜歡！這個奶油白放在廚房真的很療癒 😍 有任何問題都可以問我們喔～'),
+   R('親切','謝謝您的喜愛！希望它能為您的早晨添一點暖意，有需要隨時告訴我們。')]}});
+C({brand:'b1',pf:'IG 貼文',post:'折疊烘衣機｜小空間的救星',u:'jason.lee',text:'請問這台折疊烘衣機一次可以烘幾件衣服？',age:18,type:'產品詢問',tags:['規格'],pri:'中',ai:{conf:91,action:'建議依知識庫回覆容量規格',kb:[3],replies:[
+   R('簡潔','您好，這台容量約 5 公斤，一次可烘約 8～10 件日常衣物。'),
+   R('親切','您好～這台折疊烘衣機容量約 5 公斤，一次大約可以烘 8～10 件日常衣物，一般家庭每天使用很夠用喔！'),
+   R('活潑','嗨嗨！容量約 5 公斤，大概 8～10 件日常衣物沒問題 👕 小空間也放得下～')]}});
+C({brand:'b2',pf:'YouTube',post:'自動餵食器開箱與設定教學',u:'波波媽',text:'請問這個自動餵食器要怎麼連 Wi-Fi？我一直連不上',age:47,type:'使用方式',tags:['安裝設定','產品問題'],pri:'中',ai:{conf:89,action:'建議回覆連線步驟並提醒僅支援 2.4GHz',kb:[4],replies:[
+   R('活潑','嗨～連線很簡單：開啟 App → 新增裝置 → 長按機身 Wi-Fi 鍵 3 秒到燈號閃爍 → 選擇網路輸入密碼就完成囉！記得目前只支援 2.4GHz，如果是 5GHz 會連不上喔 🐶'),
+   R('專業','您好，請依序開啟 App、新增裝置，並長按機身 Wi-Fi 鍵 3 秒至燈號閃爍，再選擇網路輸入密碼。請留意本產品僅支援 2.4GHz 網路。')]}});
+C({brand:'b2',pf:'Shorts',post:'Shorts：貓咪自動飲水機',u:'喵星旅館 Cat Hotel',text:'我們是寵物旅館，想請問批發價可以怎麼談？',age:20,type:'大量採購',tags:['潛在商機','B2B'],pri:'高',status:'處理中',lock:'小琪',owner:'小琪',ai:{conf:93,action:'建議轉交業務窗口，AI 不得提供折扣',kb:[5],replies:[
+   R('專業','您好，感謝您對森活寵物的興趣！採購合作已為您轉交業務窗口，請私訊留下公司名稱與預估採購量，將由專人與您聯繫。')]}});
+C({brand:'b1',pf:'Google 評論',post:'Google 商家評論 ★★☆☆☆',u:'Hsiao Wen',text:'送貨延遲三天，客服也沒回。',age:95,type:'負面評論',tags:['物流','負面情緒'],pri:'高',risk:'中',ai:{conf:84,action:'人工處理，建議先致歉並請提供訂單編號',kb:[],replies:[
+   R('親切','您好，很抱歉這次的配送讓您久等了。我們已將狀況轉交物流團隊檢視，也請您私訊提供訂單編號，讓我們進一步協助，謝謝您願意告訴我們。'),
+   R('專業','您好，對於配送延遲與回覆不及時，我們深感抱歉。請私訊提供訂單編號，我們將協助查詢並回報進度。')]}});
+C({brand:'b2',pf:'FB 粉專',post:'毛孩夏日消暑特輯',u:'抽獎小幫手',text:'加 LINE 領 500 紅包 → bit.ly/xxxx',age:8,type:'垃圾訊息',tags:['疑似詐騙連結'],pri:'低',risk:'中',ai:{conf:97,action:'建議隱藏（涉及隱藏，需人工確認）',kb:[],replies:[]}});
+C({brand:'b1',pf:'FB 粉專',post:'品牌故事：暖屋的第一年',u:'Sophie 美食頻道',text:'我是美食 YouTuber，想邀請貴品牌一起合作影片，請問聯絡窗口是？',age:33,type:'商業合作',tags:['業配邀約'],pri:'高',status:'已轉交',owner:'Ruby',ai:{conf:92,action:'已轉交品牌經理',kb:[],replies:[
+   R('專業','您好，感謝您的邀請！已將合作需求轉交品牌窗口，請私訊留下頻道連結與合作構想，將由專人與您聯繫。')]}});
+C({brand:'b3',pf:'FB 粉專',post:'X2 淨水器開箱分享',u:'鄭大維',text:'請問 X2 可以接在冰水機上用嗎？',age:16,type:'產品詢問',tags:['相容性'],pri:'中',ai:{conf:38,gap:true,action:'知識不足：找不到可靠答案，不自行回覆，交由人工',kb:[],replies:[]}});
+C({brand:'b1',pf:'IG 貼文',post:'週末居家小物',u:'小美',text:'@Joy 你看這個！',age:30,type:'無需回覆',tags:['標註朋友'],pri:'低',ai:{conf:98,action:'建議按讚即可',kb:[],replies:[]}});
+C({brand:'b1',pf:'IG Reels',post:'Reels：氣炸鍋早餐 5 分鐘',u:'dd_home',text:'太美了',age:130,type:'稱讚',pri:'低',status:'已完成',first:2,by:'AI 自動',owner:'AI',ai:{conf:97,action:'已自動回覆',kb:[],replies:[]},sent:[{by:'AI 自動',t:'謝謝你喜歡 ☺️',ai:true}]});
+C({brand:'b1',pf:'FB 粉專',post:'品牌故事：暖屋的第一年',u:'阿凱',text:'請問今天有營業嗎？',age:210,type:'一般互動',pri:'低',status:'已完成',first:73,by:'小琪',owner:'小琪',ai:{conf:90,action:'',kb:[],replies:[]},sent:[{by:'小琪',t:'您好，今天 10:00–18:00 都有營業喔！',ai:false}]});
+C({brand:'b2',pf:'IG 貼文',post:'自動餵食器使用心得',u:'bobo_dad',text:'餵食器可以設定幾餐？',age:300,type:'產品詢問',pri:'中',status:'已完成',first:27,by:'志豪',owner:'志豪',ai:{conf:93,action:'',kb:[],replies:[]},sent:[{by:'志豪',t:'最多可設定每天 6 餐喔！',ai:true,edited:true}]});
+C({brand:'b3',pf:'FB 粉專',post:'X2 淨水器開箱分享',u:'Lisa Hsu',text:'我的濾芯多久要換？',age:360,type:'售後問題',pri:'中',status:'等待對方',first:52,by:'阿哲',owner:'阿哲',ai:{conf:90,action:'',kb:[],replies:[]},sent:[{by:'阿哲',t:'您好，請提供購買日期，我們協助確認更換時間。',ai:true}]});
+
+const logAdd=(who,act,detail,auto)=>S.log.unshift({t:Date.now(),who,act,detail,auto:!!auto});
+[['AI 自動','自動回覆','IG Reels「太美了」→ 稱讚、低風險、信心 97%',1],['系統','自動切換 AI','「公司主力」額度不足，暖屋生活改用備援',1],['小琪','接手處理','Shorts「喵星旅館」批發詢問'],['Ruby','接收轉交','FB 粉專「Sophie 美食頻道」商業合作']].forEach((a,i)=>S.log.push({t:T0-(i+1)*9*60000,who:a[0],act:a[1],detail:a[2],auto:!!a[3]}));
+
+/* ================= 工具 ================= */
+const fmt=ms=>{const m=Math.floor(ms/60000);return m<1?'不到 1 分鐘':m>=60?`${Math.floor(m/60)} 小時 ${m%60} 分`:`${m} 分鐘`};
+const ago=ms=>{const m=Math.floor(ms/60000);return m<1?'剛剛':m<60?`${m} 分鐘前`:`${Math.floor(m/60)} 小時前`};
+const money=n=>'$'+n.toFixed(2);
+const kfmt=n=>n>=1000?(n/1000).toFixed(n>=100000?0:1)+'K':String(n);
+function sla(c){
+  const t=TYPES[c.type];
+  if(!t||!t.sla||c.status==='無需處理')return{k:'na',txt:'不計時效',pct:0};
+  if(c.first!=null){const ok=c.first<=t.sla;return{k:ok?'met':'late',txt:`首次回覆 ${c.first} 分鐘${ok?'':'（已超時）'}`,pct:1}}
+  const lim=t.sla*60000,el=Date.now()-c.created,rem=lim-el,pct=Math.min(1,el/lim);
+  if(rem<0)return{k:'over',txt:`已超時 ${fmt(-rem)}`,pct:1};
+  return{k:rem<Math.max(5*60000,lim*.25)?'near':'ok',txt:`剩 ${fmt(rem)}`,pct};
+}
+const open=c=>!DONE.includes(c.status);
+const myIds=()=>{const t=S.team.find(x=>x.name===S.me);return !t||t.brands==='all'?S.brands.map(b=>b.id):t.brands};
+const pBrands=()=>S.brands.filter(b=>myIds().includes(b.id));
+const isLead=bid=>{const t=S.team.find(x=>x.name===S.me);return !!(t&&(t.lead||[]).includes(bid))};
+const vis=()=>S.comments.filter(c=>(S.brand==='all'||c.brand===S.brand)&&pBrands().some(b=>b.id===c.brand));
+const urgency=c=>{const s=sla(c);if(!open(c))return 1e12+(Date.now()-c.created);if(c.first!=null)return 5e11;if(s.k==='na')return 4e11;return TYPES[c.type].sla*60000-(Date.now()-c.created)};
+let toastT;
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2200)}
+const pfBadge=p=>`<span class="pf" style="background:${(PF[p]||['?','#666'])[1]}">${(PF[p]||['?'])[0]}</span>`;
+const brandDot=b=>`<span class="dot" style="background:${brandOf(b).c}"></span>`;
+const priTag=p=>`<span class="tag ${p==='高'?'danger':p==='中'?'warn':''}">優先 ${p}</span>`;
+const statusTag=s=>`<span class="tag ${s==='已完成'?'ok':s==='待處理'?'warn':s==='處理中'?'brand':''}">${s}</span>`;
+const sty=c=>c.ai.replies[c.styleIdx];
+const cm=id=>S.comments.find(c=>c.id===id);
+const help=t=>`<div class="help"><span>💬</span><span>${t}</span></div>`;
+const pct=(a,b)=>b?Math.min(100,Math.round(a/b*100)):0;
+
+/* ===== AI 選用邏輯：主要 → 備援 → 沒有可用(轉人工) ===== */
+const keyOk=k=>!!k&&k.enabled&&k.status==='正常'&&k.used<k.budget;
+function effAI(bid,task){
+  const a=S.brandAI[bid];if(!a)return{key:null,why:'未設定'};
+  if(a.manual){const k=aiKey(a.manual);if(keyOk(k))return{key:k,why:'手動指定'}}
+  const p=aiKey(a[task]);if(keyOk(p))return{key:p,why:'主要'};
+  const b=aiKey(a.backup);if(keyOk(b)&&b!==p&&(S.failover.budget||S.failover.error))return{key:b,why:'備援',from:p};
+  return{key:null,why:'沒有可用的 AI'};
+}
+function recordUse(bid,task){
+  const e=effAI(bid,task);if(!e.key)return null;
+  const cost=task==='reply'?0.02:0.006,tok=task==='reply'?900:350;
+  e.key.used+=cost;e.key.tok+=tok;
+  const bb=S.use.byBrand[bid]=S.use.byBrand[bid]||{calls:0,tok:0,cost:0};bb.calls++;bb.tok+=tok;bb.cost+=cost;
+  const bt=S.use.byTask[task];bt.calls++;bt.tok+=tok;bt.cost+=cost;
+  const d=S.use.daily[S.use.daily.length-1];d.cost+=cost;d.calls++;
+  if(e.why==='備援')S.use.failovers++;
+  return e;
+}
+function aiHealth(){
+  if(!S.aiKeys.length)return{k:'warn',t:'尚未綁定 AI'};
+  let fo=0,none=0;S.brands.forEach(b=>{const e=effAI(b.id,'reply');if(!e.key)none++;else if(e.why==='備援')fo++});
+  if(none)return{k:'bad',t:`${none} 個品牌沒有可用的 AI`};
+  if(fo)return{k:'warn',t:`${fo} 個品牌已切到備援 AI`};
+  return{k:'ok',t:'AI 運作正常'};
+}
+const claim=c=>{if(c.status==='待處理'){c.status='處理中';c.lock=S.me;c.owner=c.owner||S.me;logAdd(S.me,'開始處理',`${c.u}：${c.text.slice(0,20)}`);renderList();renderNav()}else if(!c.lock){c.lock=S.me}};
+
+/* ================= 導覽 ================= */
+const NAVG=[
+ ['開始',[['home','🏠','首頁']]],
+ ['每天處理',[['inbox','📥','留言收件匣'],['batch','📦','相似留言一次回']]],
+ ['看成效',[['dash','📊','成效報表'],['insight','💡','社群洞察'],['usage','🤖','AI 用量']]],
+ ['設定',[['brands','🏷️','品牌管理'],['ig','🔗','社群帳號連接'],['ai','🧠','AI 設定'],['team','👥','團隊成員'],['rules','⚙️','回覆規則'],['log','🧾','操作紀錄']]]
+];
+const BRANDBAR=['home','inbox','batch','dash','insight','usage'];
+function renderNav(){
+  const over=vis().filter(c=>open(c)&&sla(c).k==='over').length,ah=aiHealth();
+  const cur=['brand','wizard'].includes(S.view)?'brands':S.view;
+  $('#nav').innerHTML=`<div class="logo">社群經營工作台<small>${esc(meRole()==='管理員'?'管理員模式':'成員模式')}</small></div>`+
+   NAVG.map(([g,items])=>`<div class="grp">${g}</div>`+items.map(([k,ic,n])=>{
+     let b='';
+     if(k==='inbox'&&over)b=`<span class="badge" title="已超時">${over}</span>`;
+     if(k==='ai'&&ah.k!=='ok')b=`<span class="badge ${ah.k==='bad'?'':'w'}" title="${esc(ah.t)}">!</span>`;
+     if(k==='ig'&&!S.ig.length)b=`<span class="badge w">!</span>`;
+     return `<button data-act="nav" data-v="${k}" class="${cur===k?'on':''}" ${cur===k?'aria-current="page"':''}><span><span class="ic">${ic}</span>${n}</span>${b}</button>`}).join('')).join('')+
+   `<div class="me"><b>${esc(S.me)}</b>${esc(meRole())}${pBrands().some(b=>isLead(b.id))?'・品牌負責人':''}・${esc(S.ws?.name||'示範公司')}<div class="theme"><label style="display:block;margin:4px 0">示範：切換身分<select data-in="asme" style="width:100%;margin-top:2px">${S.team.filter(t=>t.active).map(t=>`<option ${t.name===S.me?'selected':''}>${esc(t.name)}</option>`).join('')}</select></label><button data-act="theme" style="padding:0;color:inherit;text-decoration:underline">切換淺色／深色</button></div></div>`;
+  const ah2=aiHealth();
+  $('#top').innerHTML=(BRANDBAR.includes(S.view)?`<span class="lbl">看哪個品牌</span><button class="chip ${S.brand==='all'?'on':''}" data-act="brand" data-v="all">全部品牌</button>`+
+   pBrands().map(b=>`<button class="chip ${S.brand===b.id?'on':''}" data-act="brand" data-v="${b.id}">${brandDot(b.id)}${esc(b.name)}</button>`).join(''):`<span class="lbl">${esc(S.ws?.name||'示範公司')}</span>`)+
+   `<button class="chip ai ${ah2.k}" data-act="nav" data-v="ai" title="點一下前往 AI 設定">🧠 ${esc(ah2.t)}</button>`;
+}
+S.ws={name:'示範顧問公司'};
+
+/* ================= 首頁 ================= */
+function vHome(m){
+  m.className='';
+  const v=vis(),over=v.filter(c=>open(c)&&c.first==null&&sla(c).k==='over').length,near=v.filter(c=>open(c)&&c.first==null&&sla(c).k==='near').length,pend=v.filter(c=>c.status==='待處理').length;
+  const allAI=S.brands.every(b=>S.brandAI[b.id]&&S.brandAI[b.id].reply);
+  const steps=[
+   ['建立品牌（填問卷讓 AI 認識你的品牌）',S.brands.length>0,'brands','前往品牌管理'],
+   ['連接社群帳號（先從 Instagram 開始）',S.ig.some(i=>i.status==='已連接'),'ig','去連接'],
+   ['綁定至少 1 隻 AI',S.aiKeys.length>0,'ai','去綁定'],
+   ['每個品牌都選好要用哪一隻 AI',S.brands.length>0&&allAI,'ai','去設定'],
+   ['邀請團隊成員',S.team.filter(t=>t.active).length>1,'team','去邀請']
+  ];
+  const done=steps.filter(s=>s[1]).length;
+  const role=meRole(),adminHome=role==='管理員';
+  const mine=v.filter(c=>open(c)&&(c.owner===S.me||!c.owner)).sort((a,b)=>urgency(a)-urgency(b)).slice(0,6);
+  const roleCard=adminHome?'':role==='主管'?`<div class="card"><h3>各品牌現況</h3><div class="tblwrap"><table><tr><th>品牌</th><th>待處理</th><th>已超時</th><th>高風險</th></tr>${pBrands().map(b=>{const x=S.comments.filter(c=>c.brand===b.id&&open(c));return `<tr><td>${brandDot(b.id)} <b>${esc(b.name)}</b></td><td class="num">${x.filter(c=>c.status==='待處理').length}</td><td class="num">${x.filter(c=>c.first==null&&sla(c).k==='over').length}</td><td class="num">${x.filter(c=>c.risk==='高').length}</td></tr>`}).join('')}</table></div><div class="btns"><button class="btn" data-act="nav" data-v="dash">看成效報表</button><button class="btn" data-act="nav" data-v="insight">看社群洞察</button></div><div class="sub" style="margin-top:6px">主管可以查看全部品牌、介入與轉交案件；AI 與帳號連接設定由管理員處理。</div></div>`:`<div class="card"><h3>我的待辦${pBrands().some(b=>isLead(b.id))?' <span class="tag brand">品牌負責人：'+esc(pBrands().filter(b=>isLead(b.id)).map(b=>b.name).join('、'))+'</span>':''}</h3>${mine.length?mine.map(c=>`<div class="ck"><span style="flex:1"><b>${esc(c.u)}</b>　${esc(c.text.slice(0,30))}<div class="sub">${brandDot(c.brand)} ${esc(brandOf(c.brand).name)}・${esc(c.pf)}・<span class="sla ${sla(c).k}">${sla(c).txt}</span></div></span><button class="btn sm pri" data-act="gocm" data-id="${c.id}">處理</button></div>`).join(''):'<div class="empty">目前沒有需要你處理的留言，休息一下。</div>'}<div class="sub" style="margin-top:6px">只會顯示你負責品牌（${esc(pBrands().map(b=>b.name).join('、')||'無')}）的留言。</div></div>`;
+  m.innerHTML=`<div class="page"><div class="hd"><div><h2>哈囉，${esc(S.me)}</h2><div class="sub">${role}・這裡會告訴你「現在最需要做什麼」</div></div></div>
+  <h3 style="margin:0 0 8px;font-size:15px">現在要處理的留言</h3>
+  <div class="grid kpis" style="margin-bottom:20px">
+   <button class="kpi ${over?'over':''}" data-act="goinbox" data-s="over"><div class="v num">${over}</div><div class="l">已超過回覆時限，請先處理</div></button>
+   <button class="kpi ${near?'near':''}" data-act="goinbox" data-s="near"><div class="v num">${near}</div><div class="l">快要超過時限</div></button>
+   <button class="kpi" data-act="goinbox" data-s="all"><div class="v num">${pend}</div><div class="l">還沒有人處理</div></button>
+  </div>
+  ${adminHome?'':roleCard}
+  ${adminHome?`<div class="grid two">
+   <div class="card"><h3>設定進度：${done} / ${steps.length}</h3><div class="meter"><i style="width:${pct(done,steps.length)}%"></i></div>
+    ${steps.map(s=>`<div class="ck ${s[1]?'done':''}"><span class="m">${s[1]?'✓':''}</span><span style="flex:1">${s[0]}</span>${s[1]?'':`<button class="btn sm pri" data-act="nav" data-v="${s[2]}">${s[3]}</button>`}</div>`).join('')}</div>
+   <div class="card"><h3>第一次使用？照這 3 步走</h3>
+    <ol style="margin:0;padding-left:20px;line-height:2">
+     <li><b>連接 IG</b>：讓系統能收到你的留言</li>
+     <li><b>綁定 AI</b>：貼上你自己的 AI 金鑰，AI 才能幫你寫回覆</li>
+     <li><b>開始回覆</b>：到「留言收件匣」，從最上面開始處理</li></ol>
+    <div class="infobox">名詞小提醒：「首次回覆時限」是客人留言後，我們要在多久內第一次回覆。紅色代表已經超過。</div></div>
+  </div>`:''}</div>`;
+}
+
+/* ================= 收件匣 ================= */
+function vInbox(m){
+  m.className='inboxmode';
+  m.innerHTML=`<div id="inbox" class="${S.open?'open':''}"><section id="list" aria-label="留言列表"></section><section id="detail" aria-label="留言內容"></section><aside id="side" aria-label="AI 分析與處理"></aside></div>`;
+  renderList();renderDetail();
+}
+function filtered(){
+  const f=S.f;
+  return vis().filter(c=>{
+    if(f.pf!=='all'&&c.pf!==f.pf)return false;
+    if(f.st!=='all'&&c.status!==f.st)return false;
+    if(f.pri!=='all'&&c.pri!==f.pri)return false;
+    if(f.type!=='all'&&c.type!==f.type)return false;
+    if(f.sla!=='all'){const k=sla(c).k;if(!open(c)||c.first!=null)return false;if(f.sla==='near'&&k!=='near')return false;if(f.sla==='over'&&k!=='over')return false}
+    if(f.ai&&!(c.by||'').startsWith('AI'))return false;
+    if(f.q&&!(c.text+c.u+c.post).toLowerCase().includes(f.q.toLowerCase()))return false;
+    return true;
+  }).sort((a,b)=>urgency(a)-urgency(b));
+}
+let composing=false; /* 中文輸入法組字中 */
+function rowsHTML(){
+  const items=filtered();
+  return items.length?items.map(c=>{
+    const s=sla(c),a=(c.by||'').startsWith('AI');
+    return `<button class="row ${s.k} ${S.sel===c.id?'sel':''}" data-act="sel" data-id="${c.id}">
+      <span class="bar"></span>
+      <div class="meta">${pfBadge(c.pf)}${brandDot(c.brand)}<span>${esc(brandOf(c.brand).name)}</span><span>・</span><span>${esc(c.u)}</span><span style="margin-left:auto">${ago(Date.now()-c.created)}</span></div>
+      <div class="txt">${esc(c.text)}</div>
+      <div class="foot"><span class="tag ${toneOf(c.type)}">${c.type}</span>${priTag(c.pri)}${statusTag(c.status)}${c.lock&&open(c)?`<span class="tag">${esc(c.lock)} 處理中</span>`:''}${a?'<span class="tag brand">AI 自動</span>':''}<span class="sla ${s.k}" style="margin-left:auto">${s.txt}</span></div>
+      ${s.k==='na'||c.first!=null?'':`<div class="prog"><i style="width:${Math.round(s.pct*100)}%"></i></div>`}
+    </button>`}).join(''):`<div class="empty">沒有符合條件的留言。<br>調整上方篩選，或切換品牌。</div>`;
+}
+/* 只更新結果列表，不重畫搜尋框（避免打斷輸入法組字） */
+function renderRows(){const R=$('#rows');if(R)R.innerHTML=rowsHTML();else renderList()}
+function renderList(){
+  const L=$('#list');if(!L)return;
+  if(composing)return; /* 組字中不要重畫整個列表 */
+  const f=S.f,keep=document.activeElement&&document.activeElement.id==='q';
+  const selS=keep?document.activeElement.selectionStart:0,selE=keep?document.activeElement.selectionEnd:0;
+  const opt=(arr,cur,all)=>`<option value="all">${all}</option>`+arr.map(a=>`<option ${cur===a?'selected':''}>${a}</option>`).join('');
+  L.innerHTML=`<div class="filters">
+    <input id="q" type="search" placeholder="搜尋留言、帳號或貼文" value="${esc(f.q)}" data-in="q" aria-label="搜尋">
+    <select data-in="pf" aria-label="平台">${opt(Object.keys(PF),f.pf,'全部平台')}</select>
+    <select data-in="type" aria-label="留言類型">${opt(Object.keys(TYPES),f.type,'全部類型')}</select>
+    <select data-in="st" aria-label="狀態">${opt(STATUS,f.st,'全部狀態')}</select>
+    <select data-in="pri" aria-label="優先級">${opt(['高','中','低'],f.pri,'全部優先級')}</select>
+    <select data-in="sla" aria-label="時效" style="grid-column:1/-1"><option value="all">不限時效</option><option value="near" ${f.sla==='near'?'selected':''}>快要超時</option><option value="over" ${f.sla==='over'?'selected':''}>已超時</option></select>
+    <label><input type="checkbox" class="chk" data-in="ai" ${f.ai?'checked':''}> 只看 AI 自動處理的</label>
+  </div><div id="rows">${rowsHTML()}</div>`;
+  if(keep){const q=$('#q');q.focus();try{q.setSelectionRange(selS,selE)}catch(_){}}
+}
+function renderDetail(){
+  const D=$('#detail'),SD=$('#side');if(!D)return;
+  const c=cm(S.sel);
+  if(!c||!S.brands.some(b=>b.id===c.brand)){D.innerHTML=`<div class="empty">從左側選一則留言開始處理。<br>最緊急的留言會排在最上面。</div>`;SD.innerHTML='';return}
+  const s=sla(c),b=brandOf(c.brand),lockedByOther=c.lock&&c.lock!==S.me&&open(c);
+  const eR=effAI(c.brand,'reply'),eC=effAI(c.brand,'classify'),noAI=!eR.key,dis=lockedByOther||noAI;
+  if(c.draft===null)c.draft='';
+  const gap=c.ai.gap,canAuto=TYPES[c.type].mode==='auto'&&c.risk==='低'&&c.ai.conf>=90&&c.status==='待處理'&&c.ai.replies.length&&!noAI;
+  const ak=a=>S.aiKeys.map(k=>`<option value="${k.id}" ${S.brandAI[c.brand]&&S.brandAI[c.brand].manual===k.id?'selected':''}>${esc(k.label)}（${esc(k.provider)}）</option>`).join('');
+  D.innerHTML=`<button class="btn back" data-act="back">← 回到列表</button>
+  <div class="hd"><div><h2>${esc(c.u)}</h2><div class="sub">${pfBadge(c.pf)} ${esc(c.pf)}・${brandDot(c.brand)}${esc(b.name)}・${new Date(c.created).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})} 留言</div></div>
+   <div>${statusTag(c.status)}</div></div>
+  <div class="slabox ${s.k}" id="slaBox"><span>回覆時限（${TYPES[c.type].sla?TYPES[c.type].sla+' 分鐘內要第一次回覆':'不列入計算'}）</span><b class="num">${s.txt}</b></div>
+  <div class="card">
+    <div class="post">${esc(c.post)}</div>
+    ${c.ctx.map(x=>`<div class="sub" style="margin:0 0 6px 4px">前後脈絡：${esc(x)}</div>`).join('')}
+    <div class="bubble">${esc(c.text)}</div>
+    ${c.sent.map(r=>`<div class="bubble brandside" style="margin-top:8px">${esc(r.t)}<div class="sub">${esc(r.by)}${r.ai?'・採用 AI 建議':''}${r.edited?'（已人工修改）':''}</div></div>`).join('')}
+  </div>
+  ${lockedByOther?`<div class="warnbox">${esc(c.lock)} 正在處理這則留言。為避免重複回覆，請先與對方確認。 <button class="btn sm" data-act="takeover">我來接手</button></div>`:''}
+  ${noAI?`<div class="warnbox"><b>這個品牌目前沒有可用的 AI</b>（額度用完、金鑰異常，或還沒設定）。你仍可以自己輸入回覆，或 <button class="btn sm" data-act="nav" data-v="ai">前往 AI 設定</button></div>`:''}
+  ${eR.why==='備援'?`<div class="infobox">主要 AI 目前不能用，已自動改用備援：<b>${esc(eR.key.label)}</b>。</div>`:''}
+  ${gap?`<div class="warnbox"><b>知識不足：</b>AI 找不到可靠答案，沒有自行編造。請人工回覆後，可勾選「提交為知識內容」。</div>`:''}
+  ${canAuto?`<div class="warnbox" style="background:var(--ok-soft);color:var(--ok)">符合自動回覆規則（低風險、信心 ${c.ai.conf}%）。 <button class="btn sm" data-act="autoreply">立即由 AI 自動回覆</button></div>`:''}
+  <div class="card">
+    <h3>回覆</h3>
+    ${c.ai.replies.length?`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="sub">AI 草稿</span><div class="seg" role="group" aria-label="AI 回覆風格">${c.ai.replies.map((r,i)=>`<button data-act="style" data-i="${i}" class="${c.styleIdx===i&&c.usedAi?'on':''}" ${dis?'disabled':''}>${r.style}</button>`).join('')}</div><button class="btn sm" data-act="regen" ${dis?'disabled':''}>重新產生</button>${c.aiBy?`<span class="sub">由「${esc(c.aiBy)}」產生</span>`:''}</div>`:`<div class="sub" style="margin-bottom:6px">${gap?'請直接輸入回覆內容。':'這類留言沒有 AI 草稿，可自行輸入。'}</div>`}
+    <textarea id="draft" data-in="draft" placeholder="輸入回覆內容…" aria-label="回覆內容" ${lockedByOther?'disabled':''} style="margin-top:8px">${esc(c.draft)}</textarea>
+    <div class="btns">
+      <select data-in="std" aria-label="標準回覆" ${lockedByOther?'disabled':''}><option value="">插入標準回覆…</option><option>已為您轉交專人，將於上班時間內與您聯繫，謝謝。</option><option>請私訊提供訂單編號與聯絡電話，我們協助查詢。</option><option>感謝您的支持，我們會繼續努力！</option></select>
+      <button class="btn" data-act="kb">${c.kbOpen?'收起相關資料':'查看 AI 參考的資料'}</button>
+      ${gap?`<label class="sub" style="display:flex;gap:4px;align-items:center"><input type="checkbox" class="chk" id="toKb"> 提交為知識內容</label>`:''}
+      <span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap"><button class="btn" data-act="send" data-s="等待對方" ${lockedByOther?'disabled':''}>送出，等對方回覆</button><button class="btn pri" data-act="send" data-s="已完成" ${lockedByOther?'disabled':''}>送出並結案</button></span>
+    </div>
+    ${c.kbOpen?`<div class="kb"><b>AI 參考的品牌資料</b>${c.ai.kb.length?c.ai.kb.map(id=>{const k=S.kb.find(x=>x.id===id);return k?`<div>・${esc(k.title)}</div>`:''}).join(''):'<div class="sub">沒有找到可引用的資料。</div>'}</div>`:''}
+  </div>
+  <div class="card"><h3>內部備註（客人看不到）</h3>${c.notes.map(n=>`<div class="sub" style="margin-bottom:4px">${esc(n.by)}：${esc(n.t)}</div>`).join('')}
+    <div class="btns" style="margin-top:0"><input type="text" id="noteIn" placeholder="輸入備註，可用 @小琪 提醒同事" style="flex:1;min-width:160px" aria-label="內部備註"><button class="btn" data-act="note">加入備註</button></div></div>`;
+  SD.innerHTML=`<div class="card"><h3>AI 分析</h3>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px"><span class="tag ${toneOf(c.type)}">${c.type}</span>${c.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>
+    <dl class="kv"><dt>優先級</dt><dd>${priTag(c.pri)}</dd><dt>風險</dt><dd><span class="tag ${c.risk==='高'?'danger':c.risk==='中'?'warn':'ok'}">${c.risk}</span></dd><dt>信心</dt><dd class="num">${c.ai.conf}%</dd><dt>處理方式</dt><dd>${MODES[TYPES[c.type].mode]}</dd><dt>建議</dt><dd>${esc(c.ai.action)}</dd></dl></div>
+    <div class="card"><h3>這個品牌用哪隻 AI</h3>
+    <dl class="kv"><dt>判斷類型</dt><dd>${eC.key?esc(eC.key.label)+(eC.why==='備援'?'（備援）':''):'<span class="tag danger">無</span>'}</dd><dt>寫回覆</dt><dd>${eR.key?esc(eR.key.label)+(eR.why==='備援'?'（備援）':''):'<span class="tag danger">無</span>'}</dd></dl>
+    <div class="field" style="margin:8px 0 0"><label>臨時手動切換</label><select data-in="manualai" ${S.aiKeys.length?'':'disabled'}><option value="">自動（建議）</option>${ak()}</select></div></div>
+    <div class="card"><h3>狀態與負責人</h3>
+    <dl class="kv"><dt>狀態</dt><dd><select data-in="status" aria-label="狀態">${STATUS.map(x=>`<option ${c.status===x?'selected':''}>${x}</option>`).join('')}</select></dd>
+    <dt>負責人</dt><dd>${esc(c.owner||'尚未指定')}</dd><dt>實際回覆</dt><dd>${esc(c.by||'尚未回覆')}</dd>
+    <dt>轉交給</dt><dd><select data-in="transfer" aria-label="轉交給"><option value="">選擇同事…</option>${teamNames().filter(x=>x!==S.me).map(x=>`<option>${esc(x)}</option>`).join('')}</select></dd></dl></div>
+    <div class="card"><h3>其他處理</h3><div class="btns" style="margin-top:0">
+      <button class="btn" data-act="like">按讚就好</button><button class="btn" data-act="skip">不用處理</button>
+      <button class="btn" data-act="follow">${c.follow?'取消稍後追蹤':'稍後追蹤'}</button>
+      <button class="btn danger" data-act="hide">${c._cf?'再按一次確認隱藏':'隱藏留言'}</button></div>
+      <div class="sub" style="margin-top:8px">隱藏、刪除屬於較高風險動作，需要再確認一次。</div></div>`;
+}
+function refreshLive(){
+  renderList();
+  const c=cm(S.sel),b=$('#slaBox');
+  if(c&&b){const s=sla(c);b.className='slabox '+s.k;b.querySelector('b').textContent=s.txt}
+  renderNav();
+}
+
+/* ================= 相似留言 ================= */
+const POOL=[u=>`Hi ${u}，X2 淨水器目前活動價 NT$2,980，含一年保固，歡迎到商品頁了解詳情 💧`,u=>`${u} 您好～X2 淨水器售價 NT$2,980（含一年保固），商品連結已放在貼文留言，歡迎參考！`,u=>`謝謝${u}的詢問！X2 現在是 NT$2,980，保固一年，有任何問題都可以再問我們喔。`,u=>`${u} 好，X2 淨水器 NT$2,980，含保固一年，詳細規格可到商品頁查看。`,u=>`感謝關注！X2 活動價 NT$2,980（保固一年），想了解安裝方式也能直接留言問我們 😊`];
+function groups(){const g={};vis().filter(c=>c.group&&open(c)&&c.first==null).forEach(c=>(g[c.group]=g[c.group]||[]).push(c));return g}
+const BCAP=20;
+const batchOK=()=>meRole()!=='操作人員'||!!S.batchOp;
+function vBatch(m){
+  m.className='';
+  const G=groups(),keys=Object.keys(G);
+  if(!keys.length){m.innerHTML=`<div class="page">${help('同一支貼文或廣告短時間出現很多相似問題（例如一直問價格）時，會自動集中在這裡，讓你一次回覆。')}<div class="card empty">目前沒有需要一次處理的相似留言。</div></div>`;return}
+  if(!G[S.batchSel])S.batchSel=keys[0];
+  const mem=G[S.batchSel];
+  m.innerHTML=`<div class="page"><div class="hd"><div><h2>相似留言一次回</h2></div></div>${help('步驟：<b>① 勾選</b>要回的留言 → <b>② 產生回覆</b> → <b>③ 確認送出</b>。價格、保固等事實一致，措辭會稍微不同，避免全部都是一樣的罐頭文字。')}
+  <div class="grid" style="grid-template-columns:minmax(220px,300px) 1fr;align-items:start">
+   <div>${keys.map(k=>`<button class="row card ${k===S.batchSel?'sel':''}" style="border:1px solid var(--line);border-radius:10px;margin-bottom:8px" data-act="bsel" data-g="${k}"><b>${esc(G[k][0].post)}</b><div class="sub">${G[k][0].type}・${G[k].length} 則相似留言</div></button>`).join('')}</div>
+   <div class="card"><h3>${esc(mem[0].post)}：${mem[0].type}（${mem.length} 則）</h3>
+    <div class="btns" style="margin:0 0 8px"><button class="btn" data-act="ball">全選／取消全選</button><button class="btn" data-act="bgen">② 產生回覆</button><button class="btn pri" data-act="bsend" ${batchOK()?'':'disabled'}>③ 預覽並送出</button></div>
+    ${batchOK()?'':'<div class="warnbox">「操作人員」預設不能使用一次回覆多則留言。請主管或管理員處理，或請管理員開放。</div>'}
+    ${meRole()==='管理員'?`<label class="sub" style="display:flex;gap:8px;align-items:center"><span class="sw"><input type="checkbox" data-in="batchop" ${S.batchOp?'checked':''} aria-label="允許操作人員"><i></i></span>允許「操作人員」使用一次回覆（一次最多 ${BCAP} 則）</label>`:''}
+    ${mem.map(c=>`<div style="display:grid;grid-template-columns:24px 1fr;gap:8px;padding:10px 0;border-top:1px solid var(--line)"><input type="checkbox" class="chk" data-in="bchk" data-id="${c.id}" ${c._b?'checked':''} aria-label="選取 ${esc(c.u)} 的留言">
+      <div><div><b>${esc(c.u)}</b>　${esc(c.text)} <span class="sla ${sla(c).k}">${sla(c).txt}</span></div>
+      ${c._bd==null?'<div class="sub">尚未產生回覆</div>':c._be?`<textarea data-in="bedit" data-id="${c.id}" maxlength="500" aria-label="編輯給 ${esc(c.u)} 的回覆" style="margin-top:6px;min-height:70px">${esc(c._bd)}</textarea><div class="btns" style="margin:4px 0 0"><button class="btn sm pri" data-act="bdone" data-id="${c.id}">完成編輯</button></div>`:`<div class="bubble brandside" style="margin:6px 0 0;font-size:13px">${esc(c._bd)}</div><div class="btns" style="margin:4px 0 0"><button class="btn sm" data-act="rpedit" data-id="${c.id}">編輯這則回覆</button></div>`}</div></div>`).join('')}
+   </div></div></div>`;
+}
+
+/* ================= 成效報表 ================= */
+function bars(rows,max,cls=''){return rows.map(([l,v,t])=>`<div class="hbar"><span>${l}</span><span class="t"><i class="${cls}" style="width:${max?Math.round(v/max*100):0}%"></i></span><span class="num">${t??v}</span></div>`).join('')}
+function vDash(m){
+  m.className='';
+  const v=vis(),replied=v.filter(c=>c.first!=null),ok=replied.filter(c=>c.first<=60).length;
+  const cnt=st=>v.filter(c=>c.status===st).length;
+  const near=v.filter(c=>open(c)&&sla(c).k==='near').length,over=v.filter(c=>open(c)&&sla(c).k==='over').length;
+  const avg=replied.length?Math.round(replied.reduce((a,c)=>a+c.first,0)/replied.length):0;
+  const K=(l,val,cls='')=>`<div class="kpi ${cls}"><div class="v num">${val}</div><div class="l">${l}</div></div>`;
+  const byPf={},byType={},byBr={};v.forEach(c=>{byPf[c.pf]=(byPf[c.pf]||0)+1;byType[c.type]=(byType[c.type]||0)+1;byBr[brandOf(c.brand).name]=(byBr[brandOf(c.brand).name]||0)+1});
+  const srt=o=>Object.entries(o).sort((a,b)=>b[1]-a[1]);
+  const st=S.stats,adopt=st.sug?Math.round(st.adopt/st.sug*100):0,edit=st.adopt?Math.round(st.edit/st.adopt*100):0;
+  const days=['9/30','10/1','10/2','10/3','10/4','10/5','10/6'],vol=[186,203,175,241,228,160,197],neg=[6,7,5,9,12,8,7];
+  const W=420,H=140,bw=34,mx=260;
+  const svg=`<svg viewBox="0 0 ${W} ${H+24}" width="100%" role="img" aria-label="近 7 日留言量與負面比例">${vol.map((x,i)=>{const h=x/mx*H,xx=14+i*58;return `<rect x="${xx}" y="${H-h}" width="${bw}" height="${h}" rx="3" fill="var(--brand)" opacity=".85"/><text x="${xx+bw/2}" y="${H+16}" text-anchor="middle" font-size="11" fill="var(--muted)">${days[i]}</text><text x="${xx+bw/2}" y="${H-h-4}" text-anchor="middle" font-size="10" fill="var(--ink)">${x}</text>`}).join('')}<polyline fill="none" stroke="var(--danger)" stroke-width="2" points="${neg.map((n,i)=>`${14+i*58+bw/2},${H-n/16*H}`).join(' ')}"/>${neg.map((n,i)=>`<circle cx="${14+i*58+bw/2}" cy="${H-n/16*H}" r="3" fill="var(--danger)"/>`).join('')}</svg>`;
+  const team={};v.forEach(c=>{if(c.by&&!c.by.startsWith('AI')){const t=team[c.by]=team[c.by]||{n:0,s:0,late:0};t.n++;if(c.first!=null){t.s+=c.first;if(c.first>TYPES[c.type].sla)t.late++}}});
+  m.innerHTML=`<div class="page"><div class="hd"><div><h2>成效報表</h2><div class="sub">${S.brand==='all'?'全部品牌':esc(brandOf(S.brand).name)}</div></div></div>${help('上面的數字是「現在」的狀況，會即時更新；折線與長條圖是示範的近 7 日資料。')}
+  <div class="grid kpis">${K('總留言數',v.length)}${K('待處理',cnt('待處理'))}${K('處理中',cnt('處理中'))}${K('等待對方',cnt('等待對方'))}${K('已完成',cnt('已完成'))}${K('不用處理',cnt('無需處理'))}${K('快要超時',near,near?'near':'')}${K('已超時',over,over?'over':'')}${K('平均多久首次回覆',avg+' 分')}${K('60 分鐘內回覆比例',replied.length?Math.round(ok/replied.length*100)+'%':'—',replied.length&&ok/replied.length>=.8?'good':'')}</div>
+  <div class="grid two" style="margin-top:14px">
+   <div class="card"><h3>近 7 日留言量（長條）與負面比例（紅線）</h3>${svg}</div>
+   <div class="card"><h3>AI 幫了多少忙</h3>${bars([['AI 建議次數',st.sug],['被採用',st.adopt],['修改後採用',st.edit],['AI 自動回覆',st.auto],['AI 轉人工',st.human],['知識不足',st.gap]],Math.max(st.sug,1))}<div class="sub" style="margin-top:6px">建議採用率 <b class="num">${adopt}%</b>・採用後再修改的比例 <b class="num">${edit}%</b></div></div>
+   <div class="card"><h3>各平台留言量</h3>${bars(srt(byPf),Math.max(...Object.values(byPf),1))}</div>
+   <div class="card"><h3>留言類型</h3>${bars(srt(byType).slice(0,8),Math.max(...Object.values(byType),1))}</div>
+   <div class="card"><h3>各品牌留言量</h3>${bars(srt(byBr),Math.max(...Object.values(byBr),1))}</div>
+   <div class="card"><h3>團隊處理狀況</h3>${Object.keys(team).length?`<div class="tblwrap"><table><tr><th>人員</th><th>處理數</th><th>平均首次回覆</th><th>超時</th></tr>${Object.entries(team).map(([n,t])=>`<tr><td>${esc(n)}</td><td class="num">${t.n}</td><td class="num">${t.n?Math.round(t.s/t.n):0} 分</td><td class="num">${t.late}</td></tr>`).join('')}</table></div><div class="sub" style="margin-top:6px">評估績效不要只看數量，請一起看回覆品質與超時比例。</div>`:'<div class="sub">目前還沒有人工處理紀錄。</div>'}</div>
+  </div></div>`;
+}
+
+/* ================= 洞察 ================= */
+function vInsight(m){
+  m.className='';
+  const pb=pBrands(),scope=S.brand==='all'?pb:pb.filter(b=>b.id===S.brand);
+  const ids=scope.map(b=>b.id),cs=S.comments.filter(c=>ids.includes(c.brand));
+  const title=S.brand==='all'?'全部品牌（只統計你有權限的品牌：'+esc(pb.map(b=>b.name).join('、')||'無')+'）':esc(scope[0]?scope[0].name:'—');
+  const head=`<div class="hd"><div><h2>社群洞察 <span class="tag warn">展示資料</span></h2><div class="sub">${title}</div></div></div>${help('系統把留言整理成「值得注意的事」。<b>目前的留言是示範資料</b>，所以這些洞察也是示範；接上真實帳號後，會改用真實留言計算。每個品牌分開統計，不會混在一起。')}`;
+  if(!scope.length){m.innerHTML=`<div class="page">${head}<div class="card empty">你目前沒有可查看的品牌。請管理員到「團隊成員」指派品牌。</div></div>`;return}
+  if(!cs.length){m.innerHTML=`<div class="page">${head}<div class="card empty">這個品牌目前還沒有留言資料，所以沒有洞察可以顯示。<br>連接社群帳號並收到留言後，這裡才會出現內容。</div></div>`;return}
+  const tagN=(t,x)=>x.filter(c=>(c.tags||[]).includes(t));
+  const ev=[];
+  scope.forEach(b=>{
+    const x=cs.filter(c=>c.brand===b.id);if(!x.length)return;
+    const neg=x.filter(c=>(c.tags||[]).includes('負面情緒')||c.risk==='高');
+    if(neg.length)ev.push(['danger',b.name+'：負面或高風險留言',`共 ${neg.length} 則，建議優先由真人查看。例：${neg[0].text.slice(0,30)}`,neg[0].type]);
+    const g={};x.filter(c=>c.group).forEach(c=>g[c.group]=(g[c.group]||0)+1);
+    Object.values(g).filter(n=>n>=3).forEach(n=>ev.push(['warn',b.name+'：同一問題被重複詢問',`同一貼文有 ${n} 則相似留言，可以用「相似留言一次回」處理，或補進知識庫。`,'價格詢問']));
+    const lead=tagN('購買意願',x);if(lead.length)ev.push(['ok',b.name+'：出現購買意願',`${lead.length} 則留言表達想購買，別錯過。`,lead[0].type]);
+  });
+  const tcount={};cs.forEach(c=>tcount[c.type]=(tcount[c.type]||0)+1);
+  const top=Object.entries(tcount).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const pos=cs.filter(c=>(c.tags||[]).includes('正面情緒')||c.type==='稱讚');
+  const posts={};cs.forEach(c=>{const k=c.post+'｜'+c.type;posts[k]=(posts[k]||0)+1});
+  const ideas=Object.entries(posts).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  const per=scope.length>1?`<div class="card"><h3>各品牌一覽</h3><div class="tblwrap"><table><tr><th>品牌</th><th>留言數</th><th>負面／高風險</th><th>正面</th></tr>${scope.map(b=>{const x=cs.filter(c=>c.brand===b.id);return `<tr><td>${brandDot(b.id)} <b>${esc(b.name)}</b></td><td class="num">${x.length}</td><td class="num">${x.filter(c=>(c.tags||[]).includes('負面情緒')||c.risk==='高').length}</td><td class="num">${x.filter(c=>(c.tags||[]).includes('正面情緒')||c.type==='稱讚').length}</td></tr>`}).join('')}</table></div></div>`:'';
+  m.innerHTML=`<div class="page">${head}${per}
+  <div class="grid two"><div class="card"><h3>值得注意的事件</h3>${ev.length?ev.map(e=>`<div style="padding:10px 0;border-top:1px solid var(--line)"><span class="tag ${e[0]}">${esc(e[1])}</span><div style="margin:4px 0">${esc(e[2])}</div><button class="btn sm" data-act="evt" data-t="${esc(e[3])}">查看相關留言</button></div>`).join(''):'<div class="empty">目前沒有特別需要注意的事。</div>'}</div>
+  <div class="card"><h3>客人最常問／說什麼</h3>${bars(top.map(([k,v])=>[esc(k),v]),top[0][1])}</div>
+  <div class="card"><h3>值得製作的內容</h3>${ideas.map(([k,v])=>`<div style="margin:6px 0">・「${esc(k.split('｜')[0])}」收到 ${v} 則「${esc(k.split('｜')[1])}」→ 可以做一則說明貼文或加入知識庫</div>`).join('')}</div>
+  <div class="card"><h3>正面反饋</h3>${pos.length?pos.slice(0,5).map(c=>`<div style="margin:6px 0">・${esc(c.post)}：${esc(c.text.slice(0,40))}</div>`).join(''):'<div class="empty">目前還沒有明顯的正面留言。</div>'}</div></div></div>`;
+}
+
+/* ================= AI 用量 ================= */
+function vUsage(m){
+  m.className='';
+  const keys=S.aiKeys,tc=keys.reduce((a,k)=>a+k.used,0),tb=keys.reduce((a,k)=>a+k.budget,0),tt=keys.reduce((a,k)=>a+k.tok,0);
+  const calls=Object.values(S.use.byTask).reduce((a,b)=>a+b.calls,0);
+  const vb=S.brands.filter(b=>S.brand==='all'||b.id===S.brand);
+  const mxB=Math.max(...vb.map(b=>(S.use.byBrand[b.id]||{cost:0}).cost),0.01);
+  const dm=Math.max(...S.use.daily.map(d=>d.cost),0.01);
+  const W=420,H=120,bw=34;
+  const svg=`<svg viewBox="0 0 ${W} ${H+24}" width="100%" role="img" aria-label="近 7 日 AI 花費">${S.use.daily.map((d,i)=>{const h=d.cost/dm*H,x=14+i*58;return `<rect x="${x}" y="${H-h}" width="${bw}" height="${h}" rx="3" fill="var(--brand)"/><text x="${x+bw/2}" y="${H+16}" text-anchor="middle" font-size="11" fill="var(--muted)">${d.d}</text><text x="${x+bw/2}" y="${H-h-4}" text-anchor="middle" font-size="10" fill="var(--ink)">${d.cost.toFixed(1)}</text>`}).join('')}</svg>`;
+  m.innerHTML=`<div class="page"><div class="hd"><div><h2>AI 用量</h2><div class="sub">本月</div></div><button class="btn" data-act="nav" data-v="ai">前往 AI 設定</button></div>
+  ${help('這裡顯示「這個工具用掉了多少 AI」。數字是系統每次呼叫時自己記錄的<b>估算值</b>，實際帳單與剩餘額度請以各 AI 供應商後台為準（例如 OpenAI 並不提供查詢餘額的功能）。每隻 AI 的「每月預算」是你自己設定的上限。')}
+  <div class="grid kpis"><div class="kpi"><div class="v num">${money(tc)}</div><div class="l">本月估算花費</div></div><div class="kpi"><div class="v num">${money(Math.max(tb-tc,0))}</div><div class="l">所有預算剩下</div></div><div class="kpi"><div class="v num">${kfmt(calls)}</div><div class="l">AI 呼叫次數</div></div><div class="kpi"><div class="v num">${kfmt(tt)}</div><div class="l">用掉的 token（字量單位）</div></div><div class="kpi ${S.use.failovers?'near':''}"><div class="v num">${S.use.failovers}</div><div class="l">自動切換備援次數</div></div></div>
+  <h3 style="margin:20px 0 8px;font-size:15px">每隻 AI 的預算使用</h3>
+  ${keys.length?`<div class="grid two">${keys.map(k=>{const p=pct(k.used,k.budget),cl=p>=100?'d':p>=80?'w':'';return `<div class="card"><div class="keyrow"><div><b>${esc(k.label)}</b> <span class="sub">${esc(k.provider)}・****${esc(k.last4)}</span></div><span class="tag ${k.status==='正常'&&k.enabled?'ok':'danger'}">${k.enabled?k.status:'已停用'}</span></div><div class="meter"><i class="${cl}" style="width:${p}%"></i></div><div class="sub num">已用 ${money(k.used)} / 預算 ${money(k.budget)}（${p}%）・${kfmt(k.tok)} token</div>${p>=100?'<div class="warnbox" style="margin:8px 0 0">已超過預算，系統會自動改用備援。</div>':p>=80?'<div class="warnbox" style="margin:8px 0 0">快用完預算了。</div>':''}</div>`}).join('')}</div>`:'<div class="card empty">還沒有綁定任何 AI。</div>'}
+  <div class="grid two" style="margin-top:6px">
+   <div class="card"><h3>各品牌用量</h3>${bars(vb.map(b=>[esc(b.name),(S.use.byBrand[b.id]||{cost:0}).cost,money((S.use.byBrand[b.id]||{cost:0}).cost)]),mxB)}</div>
+   <div class="card"><h3>各用途用量</h3>${bars([['判斷留言類型',S.use.byTask.classify.cost,money(S.use.byTask.classify.cost)],['寫回覆草稿',S.use.byTask.reply.cost,money(S.use.byTask.reply.cost)]],Math.max(S.use.byTask.classify.cost,S.use.byTask.reply.cost,0.01))}<div class="sub">寫回覆通常比判斷類型花費高，可以把「判斷」交給較便宜的 AI。</div></div>
+   <div class="card"><h3>近 7 日花費（美元）</h3>${svg}</div>
+  </div></div>`;
+}
+
+/* ================= 品牌管理 ================= */
+function vBrands(m){
+  m.className='';
+  m.innerHTML=`<div class="page"><div class="hd"><div><h2>品牌管理</h2></div><button class="btn pri" data-act="bnew">＋ 新增品牌</button></div>
+  ${help('一個品牌 = 一個你要經營的對象。新增品牌時，用<b>問卷</b>告訴 AI 這個品牌怎麼說話、賣什麼、怎麼服務，AI 之後的回覆都會依照這些資料。')}
+  ${S.brands.length?`<div class="grid two">${S.brands.map(b=>{const ig=S.ig.filter(i=>i.brand===b.id),ai=S.brandAI[b.id],kb=S.kb.filter(k=>k.b===b.id).length,tm=S.team.filter(t=>t.active&&(t.brands==='all'||t.brands.includes(b.id))).length;
+   return `<div class="card bcard" style="border-left-color:${b.c}"><div class="keyrow"><div><h3 style="margin:0">${esc(b.name)}</h3><div class="sub">${esc(b.desc||'尚未填寫簡介')}</div></div><button class="btn" data-act="bedit" data-id="${b.id}">設定</button></div>
+   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px"><span class="tag ${ig.length?'ok':'warn'}">${ig.length?'IG 已連接 '+ig.length+' 個':'尚未連接 IG'}</span><span class="tag ${ai&&ai.reply?'ok':'warn'}">${ai&&ai.reply?'AI 已設定':'尚未選 AI'}</span><span class="tag">品牌資料 ${kb} 筆</span><span class="tag">負責成員 ${tm} 位</span></div></div>`}).join('')}</div>`:`<div class="card empty">還沒有品牌。<br><button class="btn pri" data-act="bnew" style="margin-top:10px">＋ 新增第一個品牌</button></div>`}</div>`;
+}
+function vBrand(m){
+  m.className='';
+  const b=S.brands.find(x=>x.id===S.bd);if(!b){S.view='brands';return vBrands(m)}
+  const cfg=S.brandCfg[b.id]=S.brandCfg[b.id]||{personality:'',formal:50,humor:30,len:50,emoji:'少量',addr:'您',words:'',ban:'',nopromise:''};
+  const prof=S.profiles[b.id]||{},items=S.kb.filter(k=>k.b===b.id);
+  const igs=S.ig.filter(i=>i.brand===b.id),ba=S.brandAI[b.id]||{};
+  const fld=[['name','品牌名稱'],['category','賣什麼'],['personality','品牌個性'],['addr','稱呼客人'],['emoji','表情符號'],['ban','不想出現的字詞'],['products','代表商品與價格'],['hours','客服時間'],['ship','出貨與配送'],['refund','退換貨與保固'],['complaint','客訴處理方式'],['contact','真人聯絡窗口']].filter(f=>prof[f[0]]&&String(prof[f[0]]).length);
+  m.innerHTML=`<div class="page"><button class="btn" data-act="bback" style="margin-bottom:12px">← 回到品牌列表</button>
+  <div class="hd"><div><h2><span class="dot" style="background:${b.c};width:14px;height:14px"></span> ${esc(b.name)}</h2></div><div class="btns" style="margin:0"><button class="btn" data-act="bsurvey" data-id="${b.id}">📝 重新填寫品牌問卷</button></div></div>
+  <div class="card"><h3>① 基本資料</h3><div class="grid two"><div class="field"><label>品牌名稱</label><input type="text" data-in="bname" value="${esc(b.name)}"></div><div class="field"><label>簡介</label><input type="text" data-in="bdesc" value="${esc(b.desc||'')}" placeholder="例：居家小家電"></div></div>
+   <div class="field"><label>代表色（方便在列表區分）</label><div class="choice">${PALETTE.map(c=>`<button class="cb ${b.c===c?'on':''}" data-act="bcolor" data-c="${c}" aria-label="選色 ${c}" style="background:${c};border-color:${c};width:34px;height:34px;padding:0;${b.c===c?'outline:3px solid var(--ink);outline-offset:2px':''}"></button>`).join('')}</div></div></div>
+  <div class="card"><h3>② AI 的說話風格</h3><div class="sub" style="margin-bottom:10px">拖拉調整，AI 寫回覆時會參考。想一次整理好，可以按右上角重新填問卷。</div>
+   <div class="grid two"><div>
+   <div class="field"><label>品牌個性</label><input type="text" data-in="cfg" data-k="personality" value="${esc(cfg.personality)}"></div>
+   <div class="field"><label>口語 ↔ 正式：${cfg.formal}</label><input type="range" min="0" max="100" value="${cfg.formal}" data-in="cfg" data-k="formal"></div>
+   <div class="field"><label>嚴肅 ↔ 幽默：${cfg.humor}</label><input type="range" min="0" max="100" value="${cfg.humor}" data-in="cfg" data-k="humor"></div>
+   <div class="field"><label>簡短 ↔ 詳細：${cfg.len}</label><input type="range" min="0" max="100" value="${cfg.len}" data-in="cfg" data-k="len"></div></div><div>
+   <div class="field"><label>表情符號</label><select data-in="cfg" data-k="emoji">${['不使用','少量','常用'].map(x=>`<option ${cfg.emoji===x?'selected':''}>${x}</option>`).join('')}</select></div>
+   <div class="field"><label>怎麼稱呼客人</label><select data-in="cfg" data-k="addr">${['您','你','親','姓名+您'].map(x=>`<option ${cfg.addr===x?'selected':''}>${x}</option>`).join('')}</select></div>
+   <div class="field"><label>不想出現的字詞</label><input type="text" data-in="cfg" data-k="ban" value="${esc(cfg.ban)}"></div>
+   <div class="field"><label>AI 不可以自己答應的事</label><input type="text" data-in="cfg" data-k="nopromise" value="${esc(cfg.nopromise)}"></div></div></div></div>
+  <div class="card"><h3>③ 商品與服務資料（AI 回答時會參考）</h3><div class="sub" style="margin-bottom:8px">可以新增、修改、關閉或刪除。「關閉」代表先不讓 AI 使用，之後還能打開；「刪除」就整筆移除。</div>
+   ${items.length?items.map(k=>S.kbEdit===k.id?`<div class="ck"><input type="text" id="kbEd" style="flex:1" value="${esc(k.title)}" aria-label="編輯資料"><button class="btn sm pri" data-act="kbsave" data-id="${k.id}">儲存</button><button class="btn sm" data-act="kbcancel">取消</button></div>`:
+    `<div class="ck"><label class="sw"><input type="checkbox" data-in="kbon" data-id="${k.id}" ${k.on?'checked':''} aria-label="讓 AI 使用這筆資料"><i></i></label><span class="tag">${esc(k.cat)}</span><span style="flex:1;${k.on?'':'opacity:.5'}">${esc(k.title)}</span><button class="btn sm" data-act="kbedit" data-id="${k.id}">編輯</button><button class="btn sm danger" data-act="kbdel" data-id="${k.id}">刪除</button></div>`).join(''):'<div class="sub">目前沒有資料。可以在下方新增，或重新填寫問卷。</div>'}
+   <div class="btns"><select id="kbCat" aria-label="分類">${['產品','價格','服務','售後','政策','活動','教學','常見問題'].map(x=>`<option>${x}</option>`).join('')}</select><input type="text" id="kbNew" placeholder="新增一筆，例如：保固期為購買日起 12 個月" style="flex:1;min-width:200px" aria-label="新增資料"><button class="btn pri" data-act="kbadd">新增</button>${items.length?`<button class="btn danger" data-act="kbclear">全部刪除</button>`:''}</div></div>
+  <div class="card"><h3>④ 問卷裡填過的資料</h3><div class="sub" style="margin-bottom:8px">這是新增品牌時回答的內容。按「清除」會把這個欄位和由它產生的資料一起刪掉。</div>
+   ${fld.length?fld.map(f=>`<div class="ck"><b style="width:130px;flex:none">${f[1]}</b><span style="flex:1;white-space:pre-line">${esc(Array.isArray(prof[f[0]])?prof[f[0]].join('、'):prof[f[0]])}</span><button class="btn sm danger" data-act="pfclear" data-k="${f[0]}">清除</button></div>`).join(''):'<div class="sub">沒有問卷資料。</div>'}</div>
+  <div class="card"><h3>⑤ 連接的帳號與 AI</h3>
+   <dl class="kv" style="grid-template-columns:110px 1fr"><dt>IG 帳號</dt><dd>${igs.length?igs.map(i=>esc(i.handle)+'（'+i.kind+'）').join('、'):'尚未連接'} <button class="btn sm" data-act="nav" data-v="ig">前往連接</button></dd>
+   <dt>判斷留言用</dt><dd>${ba.classify&&aiKey(ba.classify)?esc(aiKey(ba.classify).label):'未選'}</dd><dt>寫回覆用</dt><dd>${ba.reply&&aiKey(ba.reply)?esc(aiKey(ba.reply).label):'未選'}</dd><dt>備援</dt><dd>${ba.backup&&aiKey(ba.backup)?esc(aiKey(ba.backup).label):'未選'} <button class="btn sm" data-act="nav" data-v="ai">前往 AI 設定</button></dd></dl></div>
+  <div class="zone"><h3 style="margin:0 0 6px">刪除這個品牌</h3><div style="margin-bottom:10px">刪除後，這個品牌的設定、品牌資料、IG 連接與留言紀錄都會移除，<b>無法復原</b>。</div><button class="btn danger" data-act="bdel" data-id="${b.id}">刪除品牌…</button></div></div>`;
+}
+
+/* ================= 新增品牌問卷 ================= */
+const WS=['品牌與語氣','商品資料','服務與規則'];
+const Q=[
+ {id:'name',s:0,t:'text',l:'品牌名稱',h:'客人在 IG 上看到的名字',ph:'例：暖屋生活',req:1},
+ {id:'category',s:0,t:'text',l:'你們主要賣什麼？（一句話）',h:'讓 AI 知道這個品牌在做什麼',ph:'例：居家小家電、寵物用品'},
+ {id:'audience',s:0,t:'multi',l:'主要客人是誰？',h:'可以選多個',o:['年輕族群','上班族','家庭','長輩','毛孩飼主','企業客戶','其他']},
+ {id:'personality',s:0,t:'single',l:'你希望品牌聽起來像什麼樣的人？',h:'AI 會照這個個性寫回覆',o:['親切鄰家','專業可靠','活潑有趣','優雅質感','簡潔俐落','其他']},
+ {id:'addr',s:0,t:'single',l:'怎麼稱呼客人？',o:['您','你','親','姓名+您','其他']},
+ {id:'emoji',s:0,t:'single',l:'回覆要用表情符號嗎？',o:['不使用','少量','常用']},
+ {id:'ban',s:0,t:'text',l:'有哪些字詞不想出現？',h:'用頓號分隔，可以先跳過',ph:'例：最便宜、保證、絕對'},
+ {id:'products',s:1,t:'area',l:'代表商品與價格',h:'一行一個，客人問「多少錢」時 AI 會用這裡的資料',ph:'X2 淨水器 NT$2,980\n折疊烘衣機 NT$3,490'},
+ {id:'sell',s:1,t:'area',l:'商品最大的賣點是什麼？',ph:'例：免安裝、一年保固、靜音'},
+ {id:'faq',s:1,t:'area',l:'客人最常問的問題與標準答案',h:'一行一題，格式「問題：答案」',ph:'容量多大？：約 5 公斤'},
+ {id:'usage',s:1,t:'area',l:'商品使用或保養的重點',ph:'例：濾芯每 6 個月更換'},
+ {id:'hours',s:2,t:'text',l:'客服服務時間',ph:'例：週一至週五 10:00–18:00'},
+ {id:'ship',s:2,t:'area',l:'出貨與配送說明',ph:'例：下單後 3 個工作天內出貨'},
+ {id:'refund',s:2,t:'area',l:'退換貨與保固規定',ph:'例：7 天鑑賞期；保固一年'},
+ {id:'complaint',s:2,t:'single',l:'遇到客訴時，希望怎麼做？',o:['一律轉給真人處理','AI 先致歉並請客人私訊，再轉真人','由我決定（每次人工判斷）']},
+ {id:'nopromise',s:2,t:'multi',l:'有哪些事 AI 不可以自己答應？',h:'AI 遇到這些只會請客人私訊或轉真人',o:['退款','補償','折扣','出貨時間','功效或醫療說法','其他']},
+ {id:'contact',s:2,t:'text',l:'真人聯絡窗口',h:'需要轉給真人時，客人會看到這個',ph:'例：Email、LINE、電話'}
+];
+const PERS={'親切鄰家':[35,55,'溫暖、親切的鄰家朋友'],'專業可靠':[70,10,'可靠、專業的顧問'],'活潑有趣':[20,75,'活潑、有趣的夥伴'],'優雅質感':[65,25,'優雅、有質感'],'簡潔俐落':[60,10,'簡潔、有效率']};
+function eff(a,id){const v=a[id],o=String(a[id+'_other']||'').trim().slice(0,200);
+  if(Array.isArray(v))return v.map(x=>x==='其他'?(o||''):x).filter(Boolean);
+  return v==='其他'?o:v}
+function startWiz(mode,bid){
+  S.wiz={mode,bid,step:0,a:mode==='edit'?JSON.parse(JSON.stringify(S.profiles[bid]||{})):{addr:'您',emoji:'少量',complaint:'AI 先致歉並請客人私訊，再轉真人'}};
+  if(mode==='edit'&&!S.wiz.a.name)S.wiz.a.name=brandOf(bid).name;
+  S.view='wizard';render();
+}
+function sample(a0){
+  const a=Object.assign({},a0,{addr:eff(a0,'addr')||'您',personality:eff(a0,'personality')});
+  const addr=a.addr||'您',emo=a.emoji==='常用'?' 😊':a.emoji==='少量'?' 🙂':'';
+  const op={'親切鄰家':`${addr}好～謝謝${addr}的詢問`,'專業可靠':`${addr}好，感謝${addr}的詢問`,'活潑有趣':`嗨嗨！謝謝${addr}的提問`,'優雅質感':`${addr}好，感謝${addr}的關注`,'簡潔俐落':`${addr}好`}[a.personality]||`${addr}好`;
+  const prod=(a.products||'').split('\n')[0].trim()||'我們的商品';
+  return `${op}！關於「${prod}」，詳細資訊可以到商品頁查看，有任何問題歡迎再問我們${emo}`;
+}
+function vWizard(m){
+  m.className='';
+  const w=S.wiz;if(!w){S.view='brands';return vBrands(m)}
+  const a=w.a,qs=Q.filter(q=>q.s===w.step),last=w.step===3;
+  const stepBar=`<div class="steps">${WS.concat(['確認']).map((n,i)=>`<div class="${i===w.step?'on':i<w.step?'done':''}">${i+1}. ${n}</div>`).join('')}</div>`;
+  const qHtml=q=>{
+    const v=a[q.id];
+    let inp='';
+    if(q.t==='text')inp=`<input type="text" data-in="wq" data-id="${q.id}" value="${esc(v||'')}" placeholder="${esc(q.ph||'')}">`;
+    else if(q.t==='area')inp=`<textarea data-in="wq" data-id="${q.id}" placeholder="${esc(q.ph||'')}">${esc(v||'')}</textarea>`;
+    else if(q.t==='single')inp=`<div class="choice">${q.o.map(o=>`<button class="cb ${v===o?'on':''}" data-act="wsingle" data-id="${q.id}" data-v="${esc(o)}">${o}</button>`).join('')}</div>`;
+    else inp=`<div class="choice">${q.o.map(o=>`<button class="cb ${(v||[]).includes(o)?'on':''}" data-act="wmulti" data-id="${q.id}" data-v="${esc(o)}">${o}</button>`).join('')}</div>`;
+    if(q.o&&q.o.includes('其他')){const on=q.t==='multi'?(v||[]).includes('其他'):v==='其他';
+      if(on){const ot=a[q.id+'_other']||'';inp+=`<div style="margin-top:8px"><input type="text" maxlength="200" data-in="wq" data-id="${q.id}_other" value="${esc(ot)}" placeholder="請寫下你的「其他」內容（最多 200 字）" aria-label="${esc(q.l)}－其他"><div class="sub" id="oc_${q.id}">${ot.length} / 200${ot.trim()?'':'　選了「其他」，請補充說明'}</div></div>`}}
+    return `<div class="q"><label class="l">${q.l}${q.req?' <span class="tag danger">必填</span>':''}</label>${q.h?`<div class="h">${q.h}</div>`:''}${inp}</div>`;
+  };
+  const total=Q.length,answered=Q.filter(q=>{const v=a[q.id];return Array.isArray(v)?v.length:v&&String(v).trim()}).length;
+  m.innerHTML=`<div class="page" style="max-width:760px"><div class="hd"><div><h2>${w.mode==='new'?'新增品牌':'重新填寫「'+esc(brandOf(w.bid).name)+'」的品牌問卷'}</h2><div class="sub">共 ${total} 題，約 5 分鐘。只有品牌名稱必填，其他可以先跳過，之後隨時補。</div></div><button class="btn" data-act="wcancel">取消</button></div>
+  ${stepBar}
+  ${last?`<div class="card"><h3>確認一下</h3><div class="sub" style="margin-bottom:10px">已填 ${answered} / ${total} 題。確認後會建立品牌，並把你填的資料整理成「AI 會參考的品牌資料」。</div>
+   <dl class="kv" style="grid-template-columns:110px 1fr"><dt>品牌名稱</dt><dd><b>${esc(a.name||'（還沒填）')}</b></dd><dt>賣什麼</dt><dd>${esc(a.category||'—')}</dd><dt>個性</dt><dd>${esc(eff(a,'personality')||'—')}・稱呼「${esc(eff(a,'addr')||'您')}」・表情符號：${esc(a.emoji||'—')}</dd><dt>客服時間</dt><dd>${esc(a.hours||'—')}</dd><dt>遇到客訴</dt><dd>${esc(a.complaint||'—')}</dd></dl>
+   <h4>AI 大概會這樣回覆「請問多少錢？」</h4><div class="bubble brandside" style="margin-left:0">${esc(sample(a))}</div><div class="sub" style="margin-top:6px">這只是依你的回答產生的示意，正式回覆會更貼近你填的商品資料。</div></div>`:`<div class="card">${qs.map(qHtml).join('')}</div>`}
+  <div class="btns"><button class="btn" data-act="wprev" ${w.step===0?'disabled':''}>← 上一步</button>${last?`<button class="btn pri" data-act="wdone">${w.mode==='new'?'建立品牌':'儲存問卷'}</button>`:`<button class="btn pri" data-act="wnext">下一步 →</button>`}</div></div>`;
+}
+function finishWiz(){
+  const w=S.wiz,a=w.a;
+  if(!String(a.name||'').trim()){toast('請先填品牌名稱');w.step=0;render();return}
+  let id=w.bid;
+  const pe=eff(a,'personality'),p=PERS[pe]||[50,30,pe||''];
+  if(w.mode==='new'){
+    id='b'+(++S.seq);
+    S.brands.push({id,name:a.name.trim(),c:PALETTE[S.brands.length%PALETTE.length],desc:a.category||''});
+    const ok=S.aiKeys.filter(keyOk);
+    S.brandAI[id]=ok.length?{classify:ok[0].id,reply:ok[0].id,backup:ok[1]?ok[1].id:'',manual:''}:{classify:'',reply:'',backup:'',manual:''};
+    logAdd(S.me,'新增品牌',a.name);
+  }else{
+    const b=brandOf(id);b.name=a.name.trim();if(a.category)b.desc=a.category;
+    S.kb=S.kb.filter(k=>!(k.b===id&&k.src==='survey'));
+    logAdd(S.me,'更新品牌問卷',a.name);
+  }
+  S.profiles[id]=JSON.parse(JSON.stringify(a));
+  const old=S.brandCfg[id]||{};
+  S.brandCfg[id]=Object.assign({},old,{personality:p[2]||old.personality||'',formal:p[0],humor:p[1],len:old.len??50,emoji:a.emoji||'少量',addr:eff(a,'addr')||'您',ban:a.ban||'',nopromise:[].concat(eff(a,'nopromise')||[]).join('、'),words:old.words||''});
+  const add=(cat,title,field)=>S.kb.push({id:Date.now()+Math.random(),b:id,cat,title,on:true,d:'今天',src:'survey',field});
+  String(a.products||'').split('\n').map(x=>x.trim()).filter(Boolean).forEach(x=>add('價格','商品與價格：'+x,'products'));
+  if(a.sell)add('產品','商品賣點：'+a.sell,'sell');
+  String(a.faq||'').split('\n').map(x=>x.trim()).filter(Boolean).forEach(x=>add('常見問題',x,'faq'));
+  if(a.usage)add('教學','使用與保養：'+a.usage,'usage');
+  if(a.hours)add('服務','客服時間：'+a.hours,'hours');
+  if(a.ship)add('服務','出貨與配送：'+a.ship,'ship');
+  if(a.refund)add('政策','退換貨與保固：'+a.refund,'refund');
+  if(a.complaint)add('政策','客訴處理：'+a.complaint,'complaint');
+  if(a.contact)add('服務','真人聯絡窗口：'+a.contact,'contact');
+  S.wiz=null;S.bd=id;S.view='brand';S.kbEdit=null;
+  toast(w.mode==='new'?'品牌已建立，AI 已經認識它了':'問卷已更新');render();
+}
+
+/* ================= 連接 IG ================= */
+function vIG(m){
+  m.className='';
+  const dev=S.ig.some(i=>i.dev);
+  const igOn=S.ig.some(i=>i.status==='已連接');
+  const PL=[
+   ['Instagram','貼文與 Reels 留言',igOn?['已連接','ok']:['尚未設定','warn'],'下方「已連接的帳號」可連接商業／創作者帳號；連接流程目前為模擬，正式連接需 Meta 審核。'],
+   ['Instagram','廣告留言',['需查證','warn'],'廣告留言能不能透過官方介面取得，還需要查證 Meta 文件後才能決定。'],
+   ['Facebook','粉絲專頁貼文留言',['尚未設定','warn'],'規劃中；需要 Meta 授權，與 Instagram 共用同一套審核。'],
+   ['Facebook','廣告留言',['需查證','warn'],'同上，需先查證。'],
+   ['Facebook','社團',['目前不支援','danger'],'原因：社團貼文留言沒有穩定的官方介面可以讀取，為避免做出不能用的功能，預設不支援。'],
+   ['YouTube','影片與 Shorts 留言',['尚未設定','warn'],'規劃中；需要 Google 授權。可以先不接，其他平台照常使用。'],
+   ['Google 商家','評論',['開發中','warn'],'規劃中；尚未開始串接。']
+  ];
+  const ckl=[['privacy','準備好隱私權政策網頁'],['deletion','準備好「資料刪除說明」網頁'],['biz','完成 Meta 企業驗證'],['review','提交 Meta App Review（約 2–4 週）'],['testers','開發期間：把測試帳號加入測試名單']];
+  m.innerHTML=`<div class="page"><div class="hd"><div><h2>社群帳號連接</h2><div class="sub">各平台目前能做到什麼、做到哪一步，這裡都照實顯示。</div></div><button class="btn pri" data-act="igadd">＋ 連接新的 IG 帳號</button></div>
+  ${help('要讓系統收到並回覆留言，需要先連接 Instagram。<b>只有「商業帳號」或「創作者帳號」可以連接</b>，一般的個人帳號不行（但可以免費切換）。')}
+  <div class="grid three" style="margin-bottom:14px">
+   <div class="card" style="margin:0"><span class="tag ok">可以連接</span><h3 style="margin-top:8px">公司 IG（商業帳號）</h3><div class="sub">品牌、店家、公司使用。</div></div>
+   <div class="card" style="margin:0"><span class="tag ok">可以連接</span><h3 style="margin-top:8px">個人經營（創作者帳號）</h3><div class="sub">網紅、創作者、個人品牌，外觀和個人帳號差不多。</div></div>
+   <div class="card" style="margin:0"><span class="tag danger">不能直接連接</span><h3 style="margin-top:8px">一般個人帳號</h3><div class="sub">需要先在 Instagram App 的設定裡，切換成專業帳號（商業或創作者）。</div></div></div>
+  <div class="card"><h3>各平台狀態</h3><div class="sub" style="margin-bottom:8px">標示「尚未設定／需查證／開發中」的項目，目前不會收到任何留言。</div><div class="grid three">${PL.map(x=>`<div class="card" style="margin:0;background:var(--panel2)"><span class="tag ${x[2][1]}">${x[2][0]}</span><h3 style="margin-top:8px">${x[0]}・${x[1]}</h3><div class="sub">${x[3]}</div></div>`).join('')}</div></div>
+  ${dev?`<div class="warnbox"><b>目前是「開發模式」：</b>只有被加入測試名單的帳號可以連接。要讓客戶公司自己連接，需要先通過 Meta 的審核。</div>`:''}
+  <div class="card"><h3>已連接的帳號</h3>${S.ig.length?`<div class="tblwrap"><table><tr><th>帳號</th><th>類型</th><th>對應品牌</th><th>連接方式</th><th>狀態</th><th></th></tr>${S.ig.map(i=>`<tr><td><b>${esc(i.handle)}</b><div class="sub">${esc(i.kind)}・${esc(i.date)} 由 ${esc(i.by)} 連接</div></td><td>${esc(i.type)}</td><td>${S.brands.some(b=>b.id===i.brand)?brandDot(i.brand)+' '+esc(brandOf(i.brand).name):'—'}</td><td>${esc(i.via)}${i.dev?' <span class="tag warn">開發模式</span>':''}</td><td><span class="tag ${i.status==='已連接'?'ok':'danger'}">${i.status}</span></td><td style="white-space:nowrap">${i.status!=='已連接'?`<button class="btn sm pri" data-act="igre" data-id="${i.id}">重新授權</button> `:''}<button class="btn sm danger" data-act="igdel" data-id="${i.id}">中斷連接</button></td></tr>`).join('')}</table></div>`:'<div class="empty">還沒有連接任何 IG 帳號。</div>'}
+   <div class="sub" style="margin-top:8px">授權可能會過期，或被帳號擁有者在 Instagram 裡撤銷。發生時這裡會顯示「授權過期」，按「重新授權」即可。</div></div>
+  <div class="card"><h3>上線前檢查清單（給開發者／管理員）</h3><div class="sub" style="margin-bottom:6px">要開放給客戶公司使用前，需要完成這些事。自己勾選追蹤進度。</div>
+   ${ckl.map(([k,t])=>`<div class="ck ${S.ck[k]?'done':''}"><label class="sw"><input type="checkbox" data-in="ck" data-k="${k}" ${S.ck[k]?'checked':''} aria-label="${t}"><i></i></label><span>${t}</span></div>`).join('')}</div></div>`;
+}
+/* ================= AI 設定 ================= */
+function vAI(m){
+  m.className='';
+  const keys=S.aiKeys,ks=(sel,none)=>`<option value="">${none||'未選擇'}</option>`+keys.map(k=>`<option value="${k.id}" ${sel===k.id?'selected':''}>${esc(k.label)}（${esc(k.provider)}）${k.enabled?'':'・已停用'}</option>`).join('');
+  const admin=meRole()==='管理員';
+  m.innerHTML=`<div class="page"><div class="hd"><div><h2>AI 設定</h2></div>${admin?`<button class="btn pri" data-act="aikeyadd">＋ 綁定新的 AI</button>`:''}</div>
+  ${help('分兩步：<b>① 綁定 AI</b>（貼上你自己的 AI 金鑰）→ <b>② 決定每個品牌用哪一隻</b>。可以綁定多隻：一隻當主力，另一隻當備援，主力用完或當機時會自動換過去。')}
+  ${!admin?'<div class="warnbox">只有「管理員」可以綁定或刪除 AI，你可以查看目前的設定。</div>':''}
+  <div class="card"><h3>① 已綁定的 AI</h3>${keys.length?keys.map(k=>{const p=pct(k.used,k.budget),cl=p>=100?'d':p>=80?'w':'';return `<div class="card" style="background:var(--panel2)"><div class="keyrow"><div><b>${esc(k.label)}</b> <span class="sub">${esc(k.provider)}${k.custom?'・模型 '+esc(k.custom.model):''}・金鑰 ****${esc(k.last4)}・${esc(k.added)} 綁定</span>${k.custom?`<div class="sub">API 位址：${esc(k.custom.url)}</div>`:''}</div><div style="display:flex;gap:6px;align-items:center"><span class="tag ${k.status==='正常'&&k.enabled?'ok':'danger'}">${k.enabled?k.status:'已停用'}</span></div></div>
+    <div class="meter"><i class="${cl}" style="width:${p}%"></i></div><div class="sub num">本月已用 ${money(k.used)} / 每月預算 ${money(k.budget)}</div>
+    ${admin?`<div class="btns"><label class="sub" style="display:flex;gap:6px;align-items:center"><span class="sw"><input type="checkbox" data-in="aien" data-id="${k.id}" ${k.enabled?'checked':''} aria-label="啟用"><i></i></span>啟用</label><label class="sub" style="display:flex;gap:6px;align-items:center">每月預算 $<input type="number" min="1" style="width:80px" data-in="aibud" data-id="${k.id}" value="${k.budget}"></label>${k.status==='未測試'?`<button class="btn sm pri" data-act="aitest" data-id="${k.id}">測試連線（模擬）</button>`:`<button class="btn sm" data-act="aisim" data-id="${k.id}">示範：${k.status==='正常'?'模擬這隻當機':'恢復正常'}</button>`}<button class="btn sm danger" data-act="aikeydel" data-id="${k.id}" style="margin-left:auto">刪除</button></div>`:''}</div>`}).join(''):'<div class="empty">還沒有綁定 AI。按右上角「綁定新的 AI」開始。</div>'}</div>
+  <div class="card"><h3>② 每個品牌要用哪一隻</h3><div class="sub" style="margin-bottom:8px">「判斷留言類型」是讀懂留言在問什麼，「寫回覆草稿」是產生回覆。可以分給不同的 AI，把便宜的 AI 用在判斷上來省費用。</div>
+   ${S.brands.length&&keys.length?`<div class="tblwrap"><table><tr><th>品牌</th><th>判斷留言類型</th><th>寫回覆草稿</th><th>備援（主力不能用時）</th><th>臨時手動切換</th><th>現在實際使用</th></tr>${S.brands.map(b=>{const a=S.brandAI[b.id]=S.brandAI[b.id]||{classify:'',reply:'',backup:'',manual:''},er=effAI(b.id,'reply'),ec=effAI(b.id,'classify');
+    return `<tr><td>${brandDot(b.id)} <b>${esc(b.name)}</b></td><td><select data-in="bai" data-b="${b.id}" data-k="classify" ${admin?'':'disabled'}>${ks(a.classify)}</select></td><td><select data-in="bai" data-b="${b.id}" data-k="reply" ${admin?'':'disabled'}>${ks(a.reply)}</select>${a.reply&&a.reply===a.backup?'<div class="tag warn">備援與主力相同</div>':''}</td><td><select data-in="bai" data-b="${b.id}" data-k="backup" ${admin?'':'disabled'}>${ks(a.backup,'不設備援')}</select></td><td><select data-in="bai" data-b="${b.id}" data-k="manual">${ks(a.manual,'自動（建議）')}</select></td><td class="sub">判斷：${ec.key?esc(ec.key.label)+(ec.why==='備援'?'（備援）':''):'<span class="tag danger">無</span>'}<br>回覆：${er.key?esc(er.key.label)+(er.why==='備援'?'（備援）':''):'<span class="tag danger">無</span>'}</td></tr>`}).join('')}</table></div>`:'<div class="empty">需要先有品牌，並綁定至少一隻 AI。</div>'}</div>
+  <div class="card"><h3>自動切換備援的條件</h3>
+   ${[['budget','主力 AI 本月預算用完時，自動改用備援'],['error','主力 AI 連線失敗或當機時，自動改用備援'],['notify','切換時通知管理員（顯示在上方狀態列與操作紀錄）']].map(([k,t])=>`<div class="ck"><label class="sw"><input type="checkbox" data-in="fo" data-k="${k}" ${S.failover[k]?'checked':''} ${admin?'':'disabled'} aria-label="${t}"><i></i></label><span>${t}</span></div>`).join('')}
+   <div class="sub" style="margin-top:8px">如果主力和備援都不能用，系統不會硬寫回覆，會改成請真人處理，避免出錯。</div></div>
+  <div class="card"><h3>🔐 金鑰怎麼保管</h3><div style="line-height:1.9">・貼上後，畫面只會顯示最後 4 碼，之後<b>無法再看到完整金鑰</b><br>・金鑰會加密後才儲存；只有在替你呼叫 AI 的那一刻才會在伺服器短暫解開<br>・你可以隨時刪除，或到 AI 供應商後台作廢這把金鑰<br>・留言內容會送到你選的 AI 供應商處理，請確認符合你公司的資料規定</div>
+   <div class="infobox">不能用 ChatGPT 或 Claude 的「訂閱帳號登入」來綁定。要用 AI 供應商提供的「API 金鑰」，費用直接算在你自己的 AI 帳戶。</div></div></div>`;
+}
+/* ================= 團隊成員 ================= */
+function vTeam(m){
+  m.className='';
+  const admin=meRole()==='管理員';
+  m.innerHTML=`<div class="page"><div class="hd"><div><h2>團隊成員</h2></div>${admin?`<button class="btn pri" data-act="tadd">＋ 新增成員</button>`:''}</div>
+  ${help('決定「誰」可以處理「哪些品牌」的留言。每個人可以設定角色、負責的品牌，並寫備註。')}
+  ${!admin?'<div class="warnbox">只有「管理員」可以新增或修改成員。</div>':''}
+  <div class="card"><div class="tblwrap"><table><tr><th>姓名</th><th>角色</th><th>負責品牌</th><th>備註</th><th>狀態</th><th></th></tr>${S.team.map(t=>`<tr><td><b>${esc(t.name)}</b><div class="sub">${esc(t.email)}</div></td><td><span class="tag ${t.role==='管理員'?'brand':''}">${t.role}</span></td><td>${t.brands==='all'?'全部品牌':(t.brands.map(id=>brandOf(id)).filter(b=>b.name!=='（已刪除的品牌）').map(b=>`<span class="tag">${esc(b.name)}</span>`).join(' ')||'<span class="sub">尚未指定</span>')}</td><td class="sub">${esc(t.note||'')}</td><td><span class="tag ${t.active?'ok':''}">${t.active?'啟用中':'已停用'}</span></td><td style="white-space:nowrap">${admin?`<button class="btn sm" data-act="tedit" data-id="${t.id}">編輯</button> <button class="btn sm danger" data-act="tdel" data-id="${t.id}">移除</button>`:''}</td></tr>`).join('')}</table></div></div>
+  <div class="card"><h3>三種角色能做什麼</h3><div class="tblwrap"><table><tr><th>角色</th><th>權限</th></tr>${Object.entries(ROLES).map(([r,d])=>`<tr><td><b>${r}</b></td><td>${d}</td></tr>`).join('')}</table></div></div></div>`;
+}
+/* ================= 回覆規則 ================= */
+function vRules(m){
+  m.className='';
+  m.innerHTML=`<div class="page"><div class="hd"><div><h2>回覆規則</h2></div></div>${help('設定每一種留言「多久內要第一次回覆」，以及「AI 能做到哪一步」。改了之後，收件匣的倒數會馬上更新。0 分鐘代表不計時。')}
+  <div class="card"><h3>各類型留言的時限與處理方式</h3><div class="tblwrap"><table><tr><th>留言類型</th><th>啟用</th><th>時限（分鐘）</th><th>AI 的處理方式</th></tr>${Object.entries(TYPES).map(([k,t])=>`<tr><td><span class="tag ${toneOf(k)}">${k}</span></td><td><label class="sw"><input type="checkbox" data-in="tyon" data-k="${k}" ${t.on?'checked':''} aria-label="啟用 ${k}"><i></i></label></td><td><input type="number" min="0" max="1440" style="width:80px" data-in="tysla" data-k="${k}" value="${t.sla}" aria-label="${k} 時限"></td><td><select data-in="tymode" data-k="${k}">${Object.entries(MODES).map(([mk,mv])=>`<option value="${mk}" ${t.mode===mk?'selected':''}>${mv}</option>`).join('')}</select></td></tr>`).join('')}</table></div></div>
+  <div class="card"><h3>AI 一定會交給真人的情況</h3><div>AI 沒把握、找不到可靠資料、問題不清楚、同時問很多件事、涉及敏感議題、重大客訴、退款或補償、無法確認的承諾，或判斷可能有風險。</div></div>
+  <div class="card"><h3>待審的回覆範例</h3><div class="sub" style="margin-bottom:8px">同事修改過的好回覆，由你決定要不要收錄給 AI 參考，不會自動變成標準答案。</div>${S.pendingEx.length?S.pendingEx.map(e=>`<div style="padding:10px 0;border-top:1px solid var(--line)"><div class="sub">${esc(brandOf(e.b).name)}・${esc(e.by)}</div><div>留言：${esc(e.q)}</div><div class="bubble brandside" style="margin:6px 0">${esc(e.a)}</div><button class="btn sm pri" data-act="exok" data-id="${e.id}">收錄為範例</button> <button class="btn sm" data-act="exno" data-id="${e.id}">略過</button></div>`).join(''):'<div class="sub">目前沒有待審範例。</div>'}</div></div>`;
+}
+function vLog(m){
+  m.className='';
+  m.innerHTML=`<div class="page"><div class="hd"><div><h2>操作紀錄</h2></div></div>${help('誰、什麼時候、做了什麼，都會記在這裡，方便日後回頭檢查。')}<div class="card"><div class="tblwrap"><table><tr><th>時間</th><th>人員</th><th>動作</th><th>內容</th><th>來源</th></tr>${S.log.map(l=>`<tr><td class="num" style="white-space:nowrap">${new Date(l.t).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})}</td><td>${esc(l.who)}</td><td>${esc(l.act)}</td><td>${esc(l.detail)}</td><td>${l.auto?'<span class="tag brand">系統自動</span>':'人工'}</td></tr>`).join('')}</table></div></div></div>`;
+}
+
+/* ================= 彈出視窗 ================= */
+function renderModal(){
+  const M=S.modal,el=$('#modal');
+  if(!M){el.innerHTML='';return}
+  let body='';
+  if(M.type==='bprev'){
+    const d=M.d,items=d.ids.map(cm),n=items.length;
+    body=`<h3>送出前請再確認</h3><div class="sub">以下 ${n} 則會以「你修改後的文字」送出，送出後無法撤回，也不會重複送出。</div>
+     <div style="max-height:40vh;overflow:auto;margin:10px 0">${items.map(c=>`<div class="card" style="background:var(--panel2);margin-bottom:8px"><div class="sub">${brandDot(c.brand)} ${esc(brandOf(c.brand).name)}・${esc(c.pf)}</div><div><b>${esc(c.u)}</b>：${esc(c.text)}</div><div class="bubble brandside" style="margin:6px 0 0;font-size:13px">${esc(c._bd)}</div></div>`).join('')}</div>
+     <div class="field"><label>要確認請輸入「送出 ${n} 則」</label><input type="text" data-in="mf" data-k="typed" value="${esc(d.typed)}" autocomplete="off" placeholder="送出 ${n} 則"></div>
+     ${d.err?`<div style="color:var(--danger)"><b>${esc(d.err)}</b></div>`:''}
+     <div class="btns" style="justify-content:flex-end"><button class="btn" data-act="mclose">回去修改</button><button class="btn pri" data-act="bfinal">確認送出</button></div>`;
+  }else if(M.type==='confirm'){
+    body=`<h3>${esc(M.title)}</h3><div style="margin:10px 0">${M.body}</div><div class="btns" style="justify-content:flex-end"><button class="btn" data-act="mclose">取消</button><button class="btn ${M.danger?'danger':'pri'}" data-act="mconfirm">${esc(M.ok||'確認')}</button></div>`;
+  }else if(M.type==='delbrand'){
+    const b=brandOf(M.id),n=S.comments.filter(c=>c.brand===M.id).length;
+    body=`<h3>刪除品牌「${esc(b.name)}」？</h3><div style="margin:10px 0">以下內容會一起移除，<b>無法復原</b>：<br>・品牌的語氣設定與品牌資料（${S.kb.filter(k=>k.b===M.id).length} 筆）<br>・${S.ig.filter(i=>i.brand===M.id).length} 個 IG 連接<br>・${n} 則留言紀錄</div>
+     <div class="field"><label>為了避免誤刪，請輸入品牌名稱「${esc(b.name)}」確認</label><input type="text" data-in="delname" autocomplete="off"></div>
+     <div class="btns" style="justify-content:flex-end"><button class="btn" data-act="mclose">取消</button><button class="btn danger" id="delOk" data-act="bdelok" disabled>確定刪除</button></div>`;
+  }else if(M.type==='aikey'){
+    const d=M.d;
+    body=`<h3>綁定新的 AI</h3><div class="sub" style="margin-bottom:12px">到你使用的 AI 供應商後台建立「API 金鑰」，貼在下面。</div>
+     <div class="field"><label>AI 供應商</label><select data-in="mf" data-k="provider">${Object.keys(PROV).map(p=>`<option ${d.provider===p?'selected':''}>${p}</option>`).join('')}</select></div>
+     <div class="field"><label>幫它取個好認的名字</label><input type="text" data-in="mf" data-k="label" value="${esc(d.label||'')}" placeholder="例：公司主力、備用"></div>
+     ${PROV[d.provider].custom?`<div class="infobox">自訂供應商：只要對方的 API 格式與 OpenAI 相容即可。<b>位址一定要是 https</b>，不能填本機或公司內網位址。</div>
+     <div class="field"><label>供應商名稱</label><input type="text" data-in="mf" data-k="pname" value="${esc(d.pname||'')}" placeholder="例：公司自架模型"></div>
+     <div class="field"><label>模型名稱</label><input type="text" data-in="mf" data-k="model" value="${esc(d.model||'')}" placeholder="例：my-model-v1"></div>
+     <div class="field"><label>API 位址</label><input type="text" data-in="mf" data-k="url" value="${esc(d.url||'')}" placeholder="https://api.example.com/v1"></div>`:''}
+     <div class="field"><label>API 金鑰（${PROV[d.provider].hint}）</label><input type="password" data-in="mf" data-k="key" autocomplete="off" value="${esc(d.key||'')}" placeholder="貼上金鑰"></div>
+     <div class="field"><label>每月預算上限（美元）</label><input type="number" min="1" data-in="mf" data-k="budget" value="${esc(d.budget)}"></div>
+     ${PROV[d.provider].custom?`<div class="field"><label>連線測試（原型：結果為模擬，正式版會真的連線）</label><div class="btns" style="margin:0"><select data-in="mf" data-k="simr">${Object.entries(TESTR).map(([k,v])=>`<option value="${k}" ${(d.simr||'ok')===k?'selected':''}>模擬結果：${v[0]}</option>`).join('')}</select><button class="btn" data-act="aitestm">測試連線</button></div>
+     ${d.test?`<div class="${TESTR[d.test][1]}" style="margin-top:6px;padding:6px 10px;display:block;line-height:1.6"><b>${TESTR[d.test][0]}</b>：${TESTR[d.test][2]}</div>`:'<div class="sub">還沒測試。沒有測試成功的 AI 不會被用來回覆留言。</div>'}</div>`:''}
+     <div class="infobox">儲存後只會顯示最後 4 碼，完整金鑰無法再被看到。${d.err?`<div style="color:var(--danger);margin-top:6px"><b>${esc(d.err)}</b></div>`:''}</div>
+     <div class="btns" style="justify-content:flex-end"><button class="btn" data-act="mclose">取消</button><button class="btn pri" data-act="aikeysave">檢查格式並儲存</button></div>`;
+  }else if(M.type==='team'){
+    const d=M.d;
+    body=`<h3>${M.edit?'編輯成員':'新增成員'}</h3>
+     <div class="grid two"><div class="field"><label>姓名</label><input type="text" data-in="mf" data-k="name" value="${esc(d.name)}"></div><div class="field"><label>Email</label><input type="email" data-in="mf" data-k="email" value="${esc(d.email)}"></div></div>
+     <div class="field"><label>角色</label><select data-in="mf" data-k="role">${Object.keys(ROLES).map(r=>`<option ${d.role===r?'selected':''}>${r}</option>`).join('')}</select><div class="sub">${esc(ROLES[d.role])}</div></div>
+     <div class="field"><label>負責哪些品牌</label><label style="display:flex;gap:8px;align-items:center;color:var(--ink)"><input type="checkbox" class="chk" data-in="mall" ${d.all?'checked':''}> 全部品牌（包含之後新增的）</label>
+      ${d.all?'':S.brands.map(b=>`<label style="display:flex;gap:8px;align-items:center;color:var(--ink)"><input type="checkbox" class="chk" data-in="mbr" data-id="${b.id}" ${d.brands.includes(b.id)?'checked':''}> ${brandDot(b.id)} ${esc(b.name)}</label>`).join('')}</div>
+     <div class="field"><label>備註</label><textarea data-in="mf" data-k="note" placeholder="例：週末值班、只處理客訴">${esc(d.note)}</textarea></div>
+     <label style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><span class="sw"><input type="checkbox" data-in="mact" ${d.active?'checked':''} aria-label="啟用"><i></i></span>啟用這位成員</label>
+     ${d.err?`<div style="color:var(--danger)"><b>${esc(d.err)}</b></div>`:''}
+     <div class="btns" style="justify-content:flex-end"><button class="btn" data-act="mclose">取消</button><button class="btn pri" data-act="tsave">儲存</button></div>`;
+  }else if(M.type==='ig'){
+    const d=M.d;
+    const stepT=['','① 這是哪一種帳號？','② 選擇連接方式','③ 授權並對應品牌'][d.step];
+    let inner='';
+    if(d.step===1)inner=`<button class="opt ${d.kind==='公司'?'on':''}" data-act="igkind" data-v="公司"><b>公司 IG（商業帳號）</b><span class="sub">品牌、店家、公司使用的帳號</span></button>
+      <button class="opt ${d.kind==='個人'?'on':''}" data-act="igkind" data-v="個人"><b>個人經營（創作者帳號）</b><span class="sub">網紅、創作者、個人品牌</span></button>
+      <button class="opt ${d.kind==='一般'?'on':''}" data-act="igkind" data-v="一般"><b>我的是一般個人帳號</b><span class="sub">朋友之間使用的普通帳號</span></button>
+      ${d.kind==='一般'?`<div class="warnbox">一般個人帳號<b>不能直接連接</b>。請先到 Instagram App 的設定，把帳號切換成「專業帳號」（選商業或創作者，免費，可以隨時改回）。切換完成後再回來連接。</div>`:''}`;
+    else if(d.step===2)inner=`<button class="opt ${d.via==='Instagram 登入'?'on':''}" data-act="igvia" data-v="Instagram 登入"><b>用 Instagram 登入（建議，比較簡單）</b><span class="sub">不需要有 Facebook 粉絲專頁。缺點：無法處理廣告留言。</span></button>
+      <button class="opt ${d.via==='Facebook 登入'?'on':''}" data-act="igvia" data-v="Facebook 登入"><b>用 Facebook 登入</b><span class="sub">可以處理廣告留言，但 IG 必須先綁定一個 Facebook 粉絲專頁。</span></button>`;
+    else inner=`<div class="infobox"><b>授權畫面（模擬）</b><br>${esc(S.ws.name)} 想要：<br>✅ 讀取你帳號貼文上的留言<br>✅ 回覆留言<br>✅ 隱藏或刪除留言（只有你在系統裡按確認才會執行）<br>你隨時可以在 Instagram 設定裡撤銷這個授權。</div>
+      <div class="field"><label>IG 帳號名稱</label><input type="text" data-in="mf" data-k="handle" value="${esc(d.handle||'')}" placeholder="@your_brand"></div>
+      <div class="field"><label>這個帳號要對應到哪個品牌？</label><select data-in="mf" data-k="brand"><option value="">請選擇</option>${S.brands.map(b=>`<option value="${b.id}" ${d.brand===b.id?'selected':''}>${esc(b.name)}</option>`).join('')}</select></div>
+      <label style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px"><input type="checkbox" class="chk" data-in="mf" data-k="tester" ${d.tester?'checked':''}><span>目前是開發模式，我已把這個帳號加入測試名單<div class="sub">（正式版審核通過後就不需要）</div></span></label>
+      ${d.err?`<div style="color:var(--danger)"><b>${esc(d.err)}</b></div>`:''}`;
+    body=`<h3>連接 IG 帳號</h3><div class="steps" style="margin:10px 0 14px">${[1,2,3].map(i=>`<div class="${i===d.step?'on':i<d.step?'done':''}">步驟 ${i}</div>`).join('')}</div><div style="font-weight:700;margin-bottom:10px">${stepT}</div>${inner}
+      <div class="btns" style="justify-content:space-between"><button class="btn" data-act="${d.step===1?'mclose':'igprev'}">${d.step===1?'取消':'← 上一步'}</button>${d.step<3?`<button class="btn pri" data-act="ignext" ${(d.step===1&&(!d.kind||d.kind==='一般'))||(d.step===2&&!d.via)?'disabled':''}>下一步 →</button>`:`<button class="btn pri" data-act="igdone">同意並連接</button>`}</div>`;
+  }
+  el.innerHTML=`<div class="mask" data-act="mmask"><div class="modal" role="dialog" aria-modal="true">${body}</div></div>`;
+  const f=el.querySelector('input[type=text],input[type=password],input[type=email]');if(f&&!M._f){f.focus();M._f=1}
+}
+const openModal=m=>{S.modal=m;renderModal()};
+const closeModal=()=>{S.modal=null;renderModal()};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.modal)closeModal()});
+
+/* ================= 動作 ================= */
+const VIEWS={home:vHome,inbox:vInbox,batch:vBatch,dash:vDash,insight:vInsight,usage:vUsage,brands:vBrands,brand:vBrand,wizard:vWizard,ig:vIG,ai:vAI,team:vTeam,rules:vRules,log:vLog};
+function render(){
+  const mn=$('#main'),same=S._lv===S.view&&S._lb===S.bd,st=mn.scrollTop;
+  renderNav();VIEWS[S.view](mn);mn.scrollTop=same?st:0;S._lv=S.view;S._lb=S.bd;
+}
+function finish(c,status,by,aiUsed,edited,text){
+  if(c.first==null)c.first=Math.max(0,Math.round((Date.now()-c.created)/60000));
+  c.sent.push({by,t:text,ai:aiUsed,edited});
+  c.by=by;c.owner=c.owner||by;c.lock=null;c.status=status;c.draft='';c.usedAi=false;
+  if(aiUsed){S.stats.sug++;S.stats.adopt++;if(edited)S.stats.edit++}
+}
+function useAI(c,task){
+  const e=recordUse(c.brand,task);
+  if(!e){toast('這個品牌目前沒有可用的 AI');renderDetail();return null}
+  if(e.why==='備援'&&S.failover.notify)logAdd('系統','自動切換 AI',`${brandOf(c.brand).name} 改用備援「${e.key.label}」`,true);
+  c.aiBy=e.key.label+(e.why==='備援'?'（備援）':'');return e;
+}
+function startDelBrand(id){openModal({type:'delbrand',id})}
+function doDelBrand(id){
+  const b=brandOf(id);
+  S.brands=S.brands.filter(x=>x.id!==id);S.comments=S.comments.filter(c=>c.brand!==id);S.kb=S.kb.filter(k=>k.b!==id);
+  S.ig=S.ig.filter(i=>i.brand!==id);delete S.brandAI[id];delete S.brandCfg[id];delete S.profiles[id];
+  S.team.forEach(t=>{if(t.brands!=='all')t.brands=t.brands.filter(x=>x!==id)});
+  if(S.brand===id)S.brand='all';if(S.sel&&!cm(S.sel))S.sel=null;
+  logAdd(S.me,'刪除品牌',b.name);closeModal();S.view='brands';toast('已刪除品牌「'+b.name+'」');render();
+}
+const ACT={
+ nav(el){S.view=el.dataset.v;S.open=false;S.wiz=null;render()},
+ brand(el){S.brand=el.dataset.v;S.sel=null;S.open=false;render()},
+ theme(){const r=document.documentElement,dark=getComputedStyle(r).getPropertyValue('--bg').trim().toUpperCase()==='#0F1619';r.dataset.theme=dark?'light':'dark'},
+ goinbox(el){S.f={pf:'all',st:'all',pri:'all',sla:el.dataset.s==='all'?'all':el.dataset.s,type:'all',ai:false,q:''};if(el.dataset.s==='all')S.f.st='待處理';S.view='inbox';render()},
+ gocm(el){S.f={pf:'all',st:'all',pri:'all',sla:'all',type:'all',ai:false,q:''};S.view='inbox';S.sel=+el.dataset.id;S.open=true;render()},
+ sel(el){S.sel=+el.dataset.id;S.open=true;const b=$('#inbox');if(b)b.classList.add('open');renderList();renderDetail();$('#detail').scrollTop=0},
+ back(){S.open=false;$('#inbox').classList.remove('open')},
+ style(el){const c=cm(S.sel);claim(c);if(!useAI(c,'reply'))return;c.styleIdx=+el.dataset.i;c.draft=sty(c).text;c.usedAi=true;c.aiText=c.draft;renderDetail();renderNav()},
+ regen(){const c=cm(S.sel);claim(c);if(!useAI(c,'reply'))return;const n=c.ai.replies.length;c.styleIdx=(c.styleIdx+(c.usedAi?1:0))%n;c.draft=sty(c).text;c.usedAi=true;c.aiText=c.draft;renderDetail();toast(n>1?`已換成「${sty(c).style}」版本`:'已重新產生（示範資料只有一個版本）')},
+ kb(){const c=cm(S.sel);c.kbOpen=!c.kbOpen;renderDetail()},
+ send(el){
+  const c=cm(S.sel),txt=($('#draft').value||'').trim();
+  if(!txt){toast('請先輸入回覆內容');return}
+  const ai=!!c.usedAi,edited=ai&&txt!==c.aiText,toKb=$('#toKb')&&$('#toKb').checked;
+  finish(c,el.dataset.s,S.me,ai,edited,txt);
+  logAdd(S.me,'送出回覆',`${c.u}：${ai?(edited?'採用 AI 草稿並修改':'採用 AI 草稿'):'人工撰寫'}→ ${el.dataset.s}`);
+  if(toKb){S.kb.push({id:Date.now(),b:c.brand,cat:'常見問題',title:`${c.text}（人工答覆：${txt.slice(0,30)}…）`,on:true,d:'今天'});c.ai.gap=false;logAdd(S.me,'提交知識',c.text.slice(0,24))}
+  if(edited)S.pendingEx.push({id:Date.now()+1,b:c.brand,q:c.text,a:txt,by:S.me});
+  toast(el.dataset.s==='已完成'?'已送出並結案':'已送出，等對方回覆');
+  renderList();renderDetail();renderNav();
+ },
+ autoreply(){const c=cm(S.sel);if(!useAI(c,'reply'))return;const r=c.ai.replies[0];finish(c,'已完成','AI 自動',false,false,r.text);S.stats.auto++;c.owner='AI';logAdd('AI 自動','自動回覆',`${c.u}：${c.type}、低風險、信心 ${c.ai.conf}%`,true);toast('AI 已自動回覆');renderList();renderDetail();renderNav()},
+ takeover(){const c=cm(S.sel);logAdd(S.me,'接手處理',`原處理人 ${c.lock}`);c.lock=S.me;toast('已接手');renderList();renderDetail()},
+ note(){const c=cm(S.sel),v=$('#noteIn').value.trim();if(!v)return;c.notes.push({by:S.me,t:v});logAdd(S.me,'內部備註',v.slice(0,30));renderDetail()},
+ like(){const c=cm(S.sel);c.status='無需處理';c.lock=null;logAdd(S.me,'按讚',`${c.u}：${c.text.slice(0,18)}`);toast('已按讚並標記為不用處理');renderList();renderDetail();renderNav()},
+ skip(){const c=cm(S.sel);c.status='無需處理';c.lock=null;logAdd(S.me,'標記不用處理',`${c.u}：${c.text.slice(0,18)}`);renderList();renderDetail();renderNav()},
+ follow(){const c=cm(S.sel);c.follow=!c.follow;logAdd(S.me,c.follow?'稍後追蹤':'取消追蹤',c.u);toast(c.follow?'已加入稍後追蹤':'已取消追蹤');renderDetail()},
+ hide(){const c=cm(S.sel);if(!c._cf){c._cf=true;renderDetail();return}c._cf=false;c.status='無需處理';c.lock=null;logAdd(S.me,'隱藏留言',`${c.u}：${c.text.slice(0,18)}（人工確認）`);toast('已隱藏留言');renderList();renderDetail();renderNav()},
+ evt(el){S.f={pf:'all',st:'all',pri:'all',sla:'all',type:el.dataset.t,ai:false,q:''};S.view='inbox';render()},
+ bsel(el){S.batchSel=el.dataset.g;render()},
+ ball(){const G=groups()[S.batchSel]||[];const all=G.every(c=>c._b);G.forEach(c=>c._b=!all);render()},
+ bgen(){const G=(groups()[S.batchSel]||[]).filter(c=>c._b);if(!G.length){toast('請先勾選要處理的留言');return}
+  let n=0;G.forEach((c,i)=>{if(recordUse(c.brand,'reply')){c._bd=POOL[i%POOL.length](c.u);n++}});
+  if(!n){toast('這個品牌目前沒有可用的 AI');return}S.stats.sug+=n;render();toast(`已為 ${n} 則留言產生回覆`)},
+ rpedit(el){const c=cm(+el.dataset.id);c._be=true;render()},
+ bdone(el){const c=cm(+el.dataset.id);c._be=false;if(!String(c._bd||'').trim()){c._bd=null;toast('回覆是空的，已清除，請重新產生')}render()},
+ bsend(){
+  if(!batchOK()){toast('你的角色目前不能使用一次回覆');return}
+  const G=(groups()[S.batchSel]||[]).filter(c=>c._b&&String(c._bd||'').trim());
+  if(!G.length){toast('請先產生並勾選回覆');return}
+  if(G.length>BCAP){toast(`一次最多送出 ${BCAP} 則，請減少勾選（目前 ${G.length} 則）`);return}
+  if(G.some(c=>c._be)){toast('還有回覆在編輯中，請先按「完成編輯」');return}
+  openModal({type:'bprev',d:{ids:G.map(c=>c.id),typed:'',err:''}});
+ },
+ bfinal(){
+  const d=S.modal.d,n=d.ids.length;
+  if(String(d.typed).trim()!==`送出 ${n} 則`){d.err=`請輸入「送出 ${n} 則」才能確認`;renderModal();return}
+  let sent=0;
+  d.ids.forEach(id=>{const c=cm(id);if(!c||c.first!=null||!String(c._bd||'').trim())return;const txt=c._bd;finish(c,'已完成',S.me,true,true,txt);c._b=false;c._bd=null;c._be=false;sent++;logAdd(S.me,'一次回覆',`${c.u}（${brandOf(c.brand).name}・${c.pf}）：${txt.slice(0,24)}`)});
+  closeModal();toast(`已送出 ${sent} 則回覆（送出後不能重複送出）`);render();
+ },
+ /* 品牌 */
+ bnew(){startWiz('new')},
+ bedit(el){S.bd=el.dataset.id;S.kbEdit=null;S.view='brand';render()},
+ bback(){S.view='brands';render()},
+ bsurvey(el){startWiz('edit',el.dataset.id)},
+ bcolor(el){brandOf(S.bd).c=el.dataset.c;render()},
+ bdel(el){startDelBrand(el.dataset.id)},
+ bdelok(){doDelBrand(S.modal.id)},
+ kbadd(){const v=$('#kbNew').value.trim();if(!v){toast('請先輸入內容');return}S.kb.push({id:Date.now(),b:S.bd,cat:$('#kbCat').value,title:v,on:true,d:'今天'});logAdd(S.me,'新增品牌資料',v.slice(0,24));toast('已新增');render()},
+ kbedit(el){S.kbEdit=+el.dataset.id;render()},
+ kbcancel(){S.kbEdit=null;render()},
+ kbsave(el){const k=S.kb.find(x=>x.id==el.dataset.id),v=$('#kbEd').value.trim();if(!v){toast('內容不能是空的');return}k.title=v;S.kbEdit=null;logAdd(S.me,'修改品牌資料',v.slice(0,24));toast('已儲存');render()},
+ kbdel(el){const k=S.kb.find(x=>x.id==el.dataset.id);openModal({type:'confirm',title:'刪除這筆資料？',body:esc(k.title),ok:'刪除',danger:1,fn(){S.kb=S.kb.filter(x=>x.id!==k.id);logAdd(S.me,'刪除品牌資料',k.title.slice(0,24));closeModal();toast('已刪除');render()}})},
+ kbclear(){const n=S.kb.filter(k=>k.b===S.bd).length;openModal({type:'confirm',title:'刪除全部品牌資料？',body:`這個品牌的 ${n} 筆資料都會被刪除，AI 之後就沒有資料可以參考。`,ok:'全部刪除',danger:1,fn(){S.kb=S.kb.filter(k=>k.b!==S.bd);logAdd(S.me,'清空品牌資料',brandOf(S.bd).name);closeModal();toast('已清空');render()}})},
+ pfclear(el){const k=el.dataset.k,p=S.profiles[S.bd];openModal({type:'confirm',title:'清除這個欄位？',body:'問卷裡這個欄位的內容，以及由它產生的品牌資料都會被刪除。',ok:'清除',danger:1,fn(){delete p[k];S.kb=S.kb.filter(x=>!(x.b===S.bd&&x.src==='survey'&&x.field===k));logAdd(S.me,'清除問卷欄位',k);closeModal();toast('已清除');render()}})},
+ /* 問卷 */
+ wsingle(el){S.wiz.a[el.dataset.id]=el.dataset.v;render()},
+ wmulti(el){const a=S.wiz.a,id=el.dataset.id,v=el.dataset.v;a[id]=a[id]||[];a[id]=a[id].includes(v)?a[id].filter(x=>x!==v):a[id].concat(v);render()},
+ wnext(){const w=S.wiz;if(w.step===0&&!String(w.a.name||'').trim()){toast('請先填品牌名稱');return}w.step++;S._lv=null;render()},
+ wprev(){S.wiz.step--;S._lv=null;render()},
+ wdone(){finishWiz()},
+ wcancel(){const e=S.wiz&&S.wiz.mode==='edit';S.wiz=null;S.view=e?'brand':'brands';render()},
+ /* IG */
+ igadd(){openModal({type:'ig',d:{step:1,kind:null,via:null,handle:'',brand:'',tester:false}})},
+ igkind(el){S.modal.d.kind=el.dataset.v;renderModal()},
+ igvia(el){S.modal.d.via=el.dataset.v;renderModal()},
+ ignext(){S.modal.d.step++;renderModal()},
+ igprev(){S.modal.d.step--;renderModal()},
+ igdone(){
+  const d=S.modal.d;let h=(d.handle||'').trim();
+  if(!h){d.err='請輸入 IG 帳號名稱';renderModal();return}
+  if(!h.startsWith('@'))h='@'+h;
+  if(!d.brand){d.err='請選擇要對應的品牌';renderModal();return}
+  if(!d.tester){d.err='開發模式下，帳號必須先加入測試名單才能連接';renderModal();return}
+  if(S.ig.some(i=>i.handle.toLowerCase()===h.toLowerCase())){d.err='這個帳號已經連接過了';renderModal();return}
+  S.ig.push({id:'i'+Date.now(),handle:h,type:d.kind==='公司'?'商業帳號':'創作者帳號',kind:d.kind==='公司'?'公司':'個人',brand:d.brand,via:d.via,status:'已連接',dev:true,date:'今天',by:S.me});
+  logAdd(S.me,'連接 IG',`${h} → ${brandOf(d.brand).name}`);closeModal();toast('已連接 '+h);render();
+ },
+ igre(el){const i=S.ig.find(x=>x.id===el.dataset.id);i.status='已連接';logAdd(S.me,'重新授權 IG',i.handle);toast('已重新授權');render()},
+ igdel(el){const i=S.ig.find(x=>x.id===el.dataset.id);openModal({type:'confirm',title:`中斷 ${i.handle} 的連接？`,body:'中斷後系統就收不到這個帳號的新留言，原有留言紀錄會保留。之後可以重新連接。',ok:'中斷連接',danger:1,fn(){S.ig=S.ig.filter(x=>x.id!==i.id);logAdd(S.me,'中斷 IG 連接',i.handle);closeModal();toast('已中斷連接');render()}})},
+ /* AI */
+ aikeyadd(){openModal({type:'aikey',d:{provider:'OpenAI',label:'',key:'',budget:20}})},
+ aikeysave(){
+  const d=S.modal.d,rule=PROV[d.provider];
+  if(!String(d.label||'').trim()){d.err='請幫這隻 AI 取個名字';renderModal();return}
+  if(rule.custom){
+   if(!String(d.pname||'').trim()){d.err='請填供應商名稱';renderModal();return}
+   if(!String(d.model||'').trim()){d.err='請填模型名稱';renderModal();return}
+   const ue=urlCheck(d.url);if(ue){d.err=ue;renderModal();return}}
+  if(!rule.pre.test(String(d.key||'').trim())){d.err='金鑰格式看起來不對：'+rule.hint;renderModal();return}
+  if(!(+d.budget>0)){d.err='請輸入大於 0 的預算';renderModal();return}
+  const k={id:'k'+Date.now(),provider:d.provider,label:d.label.trim(),last4:d.key.trim().slice(-4),budget:+d.budget,used:0,tok:0,status:rule.custom?(d.test==='ok'?'正常':'未測試'):'正常',enabled:true,added:'今天'};
+  if(rule.custom){k.provider=d.pname.trim()+'（自訂）';k.custom={model:d.model.trim(),url:d.url.trim()};k.lastTest=d.test||''}
+  d.key='';S.aiKeys.push(k);
+  S.brands.forEach(b=>{const a=S.brandAI[b.id]=S.brandAI[b.id]||{classify:'',reply:'',backup:'',manual:''};if(!a.classify)a.classify=k.id;if(!a.reply)a.reply=k.id});
+  logAdd(S.me,'綁定 AI',`${k.label}（${k.provider}）`);closeModal();toast('已綁定，完整金鑰不會再顯示');render();
+ },
+ aitestm(){const d=S.modal.d;d.err='';const ue=urlCheck(d.url);if(!String(d.pname||'').trim()||!String(d.model||'').trim()){d.err='請先填供應商名稱與模型名稱';renderModal();return}if(ue){d.test='net';d.err=ue;renderModal();return}if(String(d.key||'').trim().length<16){d.test='auth';renderModal();return}d.test=d.simr||'ok';renderModal()},
+ aitest(el){const k=aiKey(el.dataset.id);k.lastTest='ok';k.status='正常';logAdd(S.me,'測試 AI 連線（模擬）',k.label);toast('模擬測試：連線成功');render()},
+ aikeydel(el){const k=aiKey(el.dataset.id);openModal({type:'confirm',title:`刪除「${k.label}」？`,body:'使用這隻 AI 的品牌會改用備援；沒有備援的品牌會變成「沒有可用的 AI」，留言改由真人處理。',ok:'刪除',danger:1,fn(){S.aiKeys=S.aiKeys.filter(x=>x.id!==k.id);Object.values(S.brandAI).forEach(a=>['classify','reply','backup','manual'].forEach(f=>{if(a[f]===k.id)a[f]=''}));logAdd(S.me,'刪除 AI',k.label);closeModal();toast('已刪除');render()}})},
+ aisim(el){const k=aiKey(el.dataset.id);k.status=k.status==='正常'?'異常':'正常';logAdd('系統',k.status==='正常'?'AI 恢復正常':'偵測到 AI 異常',k.label,true);toast(k.status==='正常'?'已恢復正常':'已模擬當機，使用它的品牌會自動切到備援');render()},
+ /* 成員 */
+ tadd(){openModal({type:'team',edit:false,d:{name:'',email:'',role:'操作人員',all:false,brands:[],note:'',active:true}})},
+ tedit(el){const t=S.team.find(x=>x.id===el.dataset.id);openModal({type:'team',edit:true,id:t.id,d:{name:t.name,email:t.email,role:t.role,all:t.brands==='all',brands:t.brands==='all'?[]:t.brands.slice(),note:t.note||'',active:t.active}})},
+ tsave(){
+  const M=S.modal,d=M.d;
+  if(!String(d.name).trim()){d.err='請輸入姓名';renderModal();return}
+  if(!/.+@.+\..+/.test(d.email||'')){d.err='請輸入正確的 Email';renderModal();return}
+  if(S.team.some(t=>t.name===d.name.trim()&&t.id!==M.id)){d.err='已經有同名的成員，請加上區分（例如姓名＋部門）';renderModal();return}
+  const admins=S.team.filter(t=>t.role==='管理員'&&t.active&&t.id!==M.id).length;
+  if(M.edit&&!(d.role==='管理員'&&d.active)&&admins===0){d.err='至少要保留一位啟用中的管理員';renderModal();return}
+  const rec={name:d.name.trim(),email:d.email.trim(),role:d.role,brands:d.all?'all':d.brands,note:d.note,active:d.active};
+  if(M.edit){const t=S.team.find(x=>x.id===M.id);const old=t.name;Object.assign(t,rec);if(old!==t.name){S.comments.forEach(c=>{if(c.owner===old)c.owner=t.name});if(S.me===old)S.me=t.name}logAdd(S.me,'修改成員',t.name)}
+  else{S.team.push(Object.assign({id:'t'+Date.now()},rec));logAdd(S.me,'新增成員',rec.name)}
+  closeModal();toast('已儲存');render();
+ },
+ tdel(el){
+  const t=S.team.find(x=>x.id===el.dataset.id);
+  if(t.name===S.me){toast('不能移除自己');return}
+  if(t.role==='管理員'&&S.team.filter(x=>x.role==='管理員'&&x.active&&x.id!==t.id).length===0){toast('至少要保留一位管理員');return}
+  const n=S.comments.filter(c=>c.owner===t.name&&open(c)).length;
+  openModal({type:'confirm',title:`移除成員「${t.name}」？`,body:n?`他目前負責 ${n} 則未完成的留言，移除後這些留言會變成「尚未指定負責人」。`:'移除後他就不能再登入這個工作區。',ok:'移除',danger:1,fn(){S.comments.forEach(c=>{if(c.owner===t.name&&open(c))c.owner=null});S.team=S.team.filter(x=>x.id!==t.id);logAdd(S.me,'移除成員',t.name);closeModal();toast('已移除');render()}});
+ },
+ /* 共用 */
+ mclose(){closeModal()},
+ mmask(el,e){if(e.target===el)closeModal()},
+ mconfirm(){S.modal.fn()},
+ exok(el){const i=S.pendingEx.findIndex(e=>e.id==el.dataset.id);if(i>-1){logAdd(S.me,'收錄回覆範例',S.pendingEx[i].q);S.pendingEx.splice(i,1);toast('已收錄為 AI 參考範例');render()}},
+ exno(el){const i=S.pendingEx.findIndex(e=>e.id==el.dataset.id);if(i>-1){S.pendingEx.splice(i,1);render()}}
+};
+document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(el&&ACT[el.dataset.act]&&!el.disabled)ACT[el.dataset.act](el,e)});
+function onIn(e){
+  const el=e.target,k=el.dataset.in;if(!k)return;
+  const F=S.f,c=cm(S.sel),M=S.modal;
+  if(k==='asme'){S.me=el.value;S.brand='all';S.sel=null;S.open=false;S.view='home';S.modal=null;render();toast('已切換成 '+S.me+'（'+meRole()+'）');return}
+  if(k==='q'){if(composing||e.isComposing)return;F.q=el.value;renderRows();return}
+  if(['pf','type','st','pri','sla'].includes(k)){F[k]=el.value;renderList();return}
+  if(k==='ai'){F.ai=el.checked;renderList();return}
+  if(k==='draft'&&c){claim(c);c.draft=el.value;return}
+  if(k==='std'&&c&&el.value){claim(c);c.draft=el.value;c.usedAi=false;renderDetail();return}
+  if(k==='status'&&c){c.status=el.value;if(DONE.includes(c.status))c.lock=null;logAdd(S.me,'變更狀態',`${c.u} → ${c.status}`);renderList();renderDetail();renderNav();return}
+  if(k==='transfer'&&c&&el.value){c.owner=el.value;c.status='已轉交';c.lock=null;logAdd(S.me,'轉交',`${c.u} → ${el.value}`);toast(`已轉交給 ${el.value}`);renderList();renderDetail();renderNav();return}
+  if(k==='manualai'&&c){const a=S.brandAI[c.brand]=S.brandAI[c.brand]||{};a.manual=el.value;logAdd(S.me,'手動切換 AI',`${brandOf(c.brand).name} → ${el.value?aiKey(el.value).label:'自動'}`);toast(el.value?'已手動切換':'已改回自動');renderDetail();renderNav();return}
+  if(k==='bedit'){if(composing||e.isComposing)return;cm(+el.dataset.id)._bd=el.value;return}
+  if(k==='batchop'){S.batchOp=el.checked;logAdd(S.me,el.checked?'開放操作人員一次回覆':'關閉操作人員一次回覆','');render();return}
+  if(k==='bchk'){cm(+el.dataset.id)._b=el.checked;return}
+  if(k==='bname'){const b=brandOf(S.bd);b.name=el.value;if(S.profiles[S.bd])S.profiles[S.bd].name=el.value;return}
+  if(k==='bdesc'){brandOf(S.bd).desc=el.value;return}
+  if(k==='cfg'){const cf=S.brandCfg[S.bd],kk=el.dataset.k;cf[kk]=el.type==='range'?+el.value:el.value;if(e.type==='change'&&el.tagName!=='INPUT'||(e.type==='change'&&el.type==='range')){toast('已儲存');render()}else if(e.type==='change')toast('已儲存');return}
+  if(k==='kbon'){const x=S.kb.find(i=>i.id==el.dataset.id);x.on=el.checked;toast(x.on?'AI 會使用這筆資料':'已暫時關閉這筆資料');render();return}
+  if(k==='delname'){const ok=el.value.trim()===brandOf(M.id).name;const b=$('#delOk');if(b)b.disabled=!ok;return}
+  if(k==='wq'){if(composing||e.isComposing)return;S.wiz.a[el.dataset.id]=el.value;const oc=el.dataset.id.endsWith('_other')&&$('#oc_'+el.dataset.id.replace('_other',''));if(oc)oc.textContent=el.value.length+' / 200'+(el.value.trim()?'':'　選了「其他」，請補充說明');return}
+  if(k==='mf'&&M){M.d[el.dataset.k]=el.type==='checkbox'?el.checked:el.value;M.d.err='';if(el.tagName==='SELECT'){M._f=1;renderModal()}return}
+  if(k==='mall'&&M){M.d.all=el.checked;M._f=1;renderModal();return}
+  if(k==='mbr'&&M){const id=el.dataset.id,b=M.d.brands;M.d.brands=el.checked?b.concat(id):b.filter(x=>x!==id);return}
+  if(k==='mact'&&M){M.d.active=el.checked;return}
+  if(k==='bai'){const a=S.brandAI[el.dataset.b]=S.brandAI[el.dataset.b]||{};a[el.dataset.k]=el.value;logAdd(S.me,'調整 AI 設定',`${brandOf(el.dataset.b).name}：${el.dataset.k} → ${el.value?aiKey(el.value).label:'無'}`);toast('已儲存');render();return}
+  if(k==='aien'){aiKey(el.dataset.id).enabled=el.checked;toast(el.checked?'已啟用':'已停用');render();return}
+  if(k==='aibud'){const v=+el.value;if(v>0){aiKey(el.dataset.id).budget=v;if(e.type==='change'){toast('預算已更新');render()}}return}
+  if(k==='fo'){S.failover[el.dataset.k]=el.checked;toast('已儲存');return}
+  if(k==='ck'){S.ck[el.dataset.k]=el.checked;render();return}
+  if(k==='tyon'){TYPES[el.dataset.k].on=el.checked;toast('已儲存');return}
+  if(k==='tysla'){TYPES[el.dataset.k].sla=Math.max(0,+el.value||0);if(e.type==='change'){toast('已儲存，時限已更新');renderNav()}return}
+  if(k==='tymode'){TYPES[el.dataset.k].mode=el.value;toast('已儲存');return}
+}
+document.addEventListener('input',e=>{const t=e.target;if(t.type==='range'||t.type==='text'||t.type==='search'||t.tagName==='TEXTAREA'||t.type==='number'||t.type==='email'||t.type==='password')onIn(e)});
+document.addEventListener('compositionstart',e=>{if(e.target.id==='q'||(e.target.dataset&&['wq','bedit'].includes(e.target.dataset.in)))composing=true});
+document.addEventListener('compositionend',e=>{if(e.target.id==='q'){composing=false;S.f.q=e.target.value;renderRows()}else if(e.target.dataset&&['wq','bedit'].includes(e.target.dataset.in)){composing=false;onIn({target:e.target,isComposing:false})}});
+document.addEventListener('change',onIn);
+/* ================= AI 小助手 ================= */
+/* 原型說明：目前的回答由程式內建的「頁面地圖」與說明產生，並沒有真的呼叫 AI；畫面上會照實標示。
+   權限分級：L0 回答與導覽｜L1 準備與預填（絕不送出）｜L2 確認卡後才執行（模擬）｜L3 一律拒絕 */
+const PAGEDESC={home:['首頁','看現在最需要做什麼；依角色顯示不同內容','首頁 待辦'],inbox:['留言收件匣','逐則查看、回覆留言，有 AI 建議與時限提醒','留言 收件匣 回覆 處理'],batch:['相似留言一次回','把同一則貼文下的相似問題一次處理','相似 批次 一次回 批量'],dash:['成效報表','回覆速度、留言量等數字','報表 成效 數據 統計'],insight:['社群洞察','各品牌的客人在問什麼、值得注意的事','洞察 分析'],usage:['AI 用量','AI 花了多少（估算值）','用量 花費 費用 預算'],brands:['品牌管理','新增品牌、填品牌問卷、編輯品牌資料','品牌 問卷'],ig:['社群帳號連接','各平台連接狀態與帳號連接','連接 連結 授權 instagram ig facebook youtube google 帳號'],ai:['AI 設定','綁定 AI、決定品牌用哪一隻、備援','ai 金鑰 綁定 供應商 模型'],team:['團隊成員','成員、角色與負責品牌','成員 團隊 角色 權限 邀請'],rules:['規則設定','留言類型與回覆時限等規則','規則 時限 sla'],log:['操作紀錄','誰在什麼時候做了什麼','紀錄 日誌 log']};
+const pageList=()=>{const o=[];NAVG.forEach(([g,items])=>items.forEach(([k,ic,n])=>o.push({k,n,d:(PAGEDESC[k]||[n,'','']),kw:((PAGEDESC[k]||[])[2]||'')+' '+n})));return o};
+S.as={open:false,msgs:[],pend:null};
+function asProvider(){const ks=S.aiKeys.filter(k=>keyOk(k));return ks[0]||null}
+function asAdd(role,text,cards){S.as.msgs.push({role,text,cards:cards||[]});asRender()}
+function asHead(){
+  const k=asProvider();
+  const st=k?`<span class="tag ok">已連線</span>`:`<span class="tag warn">尚未可用</span>`;
+  return `<div class="ashd"><div class="asav" aria-hidden="true">✦</div><div style="flex:1;min-width:0"><b>AI 小助手</b><div class="sub">${k?esc(k.provider)+(k.custom?'・'+esc(k.custom.model):''):'未綁定可用的 AI'} ${st}</div></div><button class="btn sm" data-act="asclose" aria-label="關閉小助手">✕</button></div>`;
+}
+function asRender(){
+  const P=$('#asPanel'),B=$('#asBtn');if(!P)return;
+  B.style.display=S.as.open?'none':'flex';P.style.display=S.as.open?'flex':'none';
+  if(!S.as.open)return;
+  const k=asProvider(),role=meRole();
+  const chips=['怎麼連接 Instagram？','怎麼綁定 AI？','哪些功能還沒做好？','我的角色可以做什麼？','帶我去 AI 用量'];
+  const body=k?`<div class="asnote">原型示範：目前回答來自內建說明，尚未真的呼叫 AI；只會用到「目前頁面」與「你的角色」，不會讀取留言內容或金鑰。</div>
+   ${S.as.msgs.length?'':`<div class="asmsg bot">哈囉，我是小助手。我可以回答怎麼使用、帶你到對應頁面，或幫你預先填好表單（不會自己送出）。</div>`}
+   ${S.as.msgs.map((m,i)=>`<div class="asmsg ${m.role}">${esc(m.text).replace(/\n/g,'<br>')}${(m.cards||[]).map((c,j)=>c.t==='go'?`<div><button class="btn sm pri" data-act="asgo" data-i="${i}" data-j="${j}">${esc(c.label)}</button></div>`:c.t==='do'?`<div class="infobox"><b>需要你確認</b><div>${esc(c.desc)}</div>${c.done?`<div class="sub">${c.done}</div>`:`<div class="btns" style="margin:6px 0 0"><button class="btn sm pri" data-act="asdo" data-i="${i}" data-j="${j}">確認執行</button><button class="btn sm" data-act="ascancel" data-i="${i}" data-j="${j}">取消</button></div>`}</div>`:'').join('')}</div>`).join('')}
+   <div class="aschips">${chips.map(c=>`<button class="cb" data-act="asq" data-q="${esc(c)}">${esc(c)}</button>`).join('')}</div>`
+  :`<div class="asnote">小助手需要「測試成功、已啟用」的 AI 才能使用。目前沒有，所以只顯示固定教學。</div>
+   <div class="asmsg bot"><b>怎麼開始使用小助手</b><br>1. 到「AI 設定」，按「綁定新的 AI」<br>2. 貼上你自己的 AI 金鑰（小助手使用你自己的帳戶，費用算在你的 AI 供應商）<br>3. 若是自訂供應商，先按「測試連線」，成功後才會啟用<br>${role==='管理員'?'':'<br>只有管理員可以綁定 AI，請聯絡管理員。'}</div>
+   ${role==='管理員'?`<button class="btn pri" data-act="nav" data-v="ai">前往 AI 設定</button>`:''}`;
+  P.innerHTML=asHead()+`<div class="asbody" id="asmsgs">${body}</div>`+(k?`<div class="asin"><input type="text" id="asin" placeholder="想問什麼？例：怎麼連接 Instagram" aria-label="問小助手" autocomplete="off"><button class="btn pri" data-act="assend">送出</button></div>`:'');
+  const mb=$('#asmsgs');if(mb)mb.scrollTop=mb.scrollHeight;
+}
+function asAnswer(q){
+  const t=q.trim(),L=t.toLowerCase(),role=meRole(),admin=role==='管理員',pages=pageList();
+  const go=(k,label)=>({t:'go',k,label:label||('前往「'+(PAGEDESC[k]||[k])[0]+'」')});
+  // L3 一律拒絕
+  if(/(刪除|移除|清空|砍掉)/.test(t)&&/(品牌|金鑰|成員|ai|帳號|留言|紀錄)/i.test(t))return{text:'這是我不能做的事（L3）：刪除類操作風險太高，我不會代替你執行。請你自己到對應頁面操作，系統會再請你二次確認。',cards:[]};
+  if(/(替|幫|直接).*(送出|發送|發出|回覆).*(客人|客戶|留言|貼文)/.test(t)||/(自動|馬上).*(送出|回覆)/.test(t))return{text:'我不能幫你把回覆送給客人（L3）。我可以帶你到收件匣，由你檢查後自己按送出。',cards:[go('inbox')]};
+  if(/(金鑰|密碼|token|api ?key).*(給我|顯示|看|告訴|是什麼)|(給我|顯示|看|告訴).*(金鑰|密碼|token|api ?key)/i.test(t))return{text:'金鑰一律不會顯示給任何人，包括我（L3）。畫面只會留最後 4 碼；需要的話請到 AI 供應商後台重新建立金鑰。',cards:[]};
+  if(/(改|變成|升級|給我).*(管理員|權限|角色)/.test(t)&&!/怎麼|如何|什麼/.test(t))return{text:'我不能改變任何人的角色或權限（L3）。這要由管理員到「團隊成員」操作。',cards:admin?[go('team')]:[]};
+  // 角色限制
+  if(!admin&&/(綁定|新增|設定|換).*(ai|金鑰)|新增品牌|建立品牌|連接.*帳號.*(新增|授權)/i.test(t)&&!/怎麼|如何|什麼|哪/.test(t))return{text:`這件事只有「管理員」可以做，你目前的角色是「${role}」。需要的話請聯絡管理員；我可以先告訴你步驟，讓你轉給他。`,cards:[]};
+  // L2 確認卡
+  if(/(標記|設成|改成|標為).*(無需處理|不用處理)/.test(t)){const c=S.sel&&cm(S.sel);if(!c||!vis().includes(c))return{text:'請先到收件匣點開一則留言，我才知道要標哪一則。',cards:[go('inbox')]};
+    return{text:'我已準備好這個動作，但需要你確認才會執行（L2）。',cards:[{t:'do',desc:`把「${c.u}：${c.text.slice(0,20)}」的狀態改成「無需處理」`,fn:()=>{c.status='無需處理';c.lock=null;logAdd(S.me,'AI 小助手代為執行（經確認）',`${c.u} → 無需處理`);render();return '已執行，並記錄在操作紀錄。'}}]}}
+  if(/(切換|換).*(深色|淺色|主題|夜間)/.test(t))return{text:'這個動作需要你確認（L2）。',cards:[{t:'do',desc:'切換淺色／深色外觀',fn:()=>{ACT.theme();return '已切換。'}}]};
+  // L1 預填（絕不送出）
+  if(/(新增|建立).*品牌/.test(t))return{text:'我幫你打開新增品牌的問卷（L1）：只是開啟畫面，內容由你自己填寫、自己按「建立品牌」。',cards:[{t:'go',label:'打開新增品牌問卷',fn:()=>startWiz('new')}]};
+  if(/(綁定|新增).*(ai|金鑰)/i.test(t)&&!/怎麼|如何/.test(t))return{text:'我幫你打開綁定視窗（L1）：金鑰請你自己貼上，我不會看到也不會代填。',cards:[{t:'go',label:'打開「綁定新的 AI」',fn:()=>{S.view='ai';render();ACT.aikeyadd()}}]};
+  // L0 說明
+  if(/連接.*(instagram|ig)|(instagram|ig).*連/i.test(t))return{text:'Instagram 連接步驟：①到「社群帳號連接」按「連接新的 IG 帳號」②選品牌並完成授權。限制：只有「商業帳號」或「創作者帳號」能連接，個人帳號需先在 Instagram 切換。\n目前狀態：連接流程是模擬的，真正連接需要 Meta 審核與客戶帳號，還沒完成。',cards:[go('ig')]};
+  if(/(綁定|設定).*ai|ai.*(綁定|怎麼|金鑰)|金鑰/i.test(t))return{text:'綁定 AI：到「AI 設定」→「綁定新的 AI」→ 選供應商、貼上你自己的 API 金鑰、設定每月預算。可綁多隻，一隻主力、一隻備援。自訂供應商需要 https 位址並通過連線測試。金鑰只會顯示最後 4 碼。',cards:[go('ai')]};
+  if(/還沒|未完成|不能用|真的|模擬|展示|限制|不支援/.test(t))return{text:'目前尚未真的完成的項目：\n・Instagram／Facebook／YouTube／Google 真實連接：尚未串接（Instagram 連接流程為模擬）\n・AI 回覆草稿：目前是示範文字，尚未呼叫真實 AI\n・社群洞察與留言：展示資料\n・送出回覆：只在工具內標記，沒有真的發到平台\n・Facebook 社團：目前不支援\n・廣告留言：需查證\n・我自己（小助手）：回答來自內建說明',cards:[go('ig')]};
+  if(/角色|權限|可以做什麼|能做什麼/.test(t)){const d={管理員:'可以管理品牌、成員、社群帳號連接、AI 設定，並處理所有留言。',主管:'可以查看所有品牌數據、處理與轉交留言、使用一次回覆；不能改 AI 與帳號連接設定。',操作人員:'只能處理自己負責品牌的留言；一次回覆預設不能用，需管理員開放。'}[role];return{text:`你目前是「${role}」。${d}`+(pBrands().length?`\n你可以看到的品牌：${pBrands().map(b=>b.name).join('、')}。`:''),cards:[]}}
+  if(/超時|時限|sla/i.test(t))return{text:'「首次回覆時限」是客人留言後要在多久內第一次回覆；快到時會變黃，超過會變紅。各類型的時限可到「規則設定」查看。',cards:[go('rules')]};
+  if(/相似|一次回|批次/.test(t))return{text:'相似留言一次回：勾選留言 → 產生回覆 → 可逐則編輯 → 預覽 → 輸入「送出 N 則」確認。一次最多 20 則，送出的是你修改後的文字。',cards:[go('batch')]};
+  if(/問卷/.test(t))return{text:'品牌問卷在「品牌管理」填寫。部分題目有「其他」可以自己寫（最多 200 字），之後都能回來修改。',cards:[go('brands')]};
+  if(/你是誰|你是什麼|你會什麼|你能|可以幫/.test(t))return{text:'我是工具內的小助手：可以回答怎麼用、帶你去對應頁面、預先打開表單（不會自己送出）、經你確認後執行少數小動作。我不會送出回覆給客人、不會刪除東西、也看不到金鑰。',cards:[]};
+  // 導覽
+  if(/帶我|去|前往|打開|在哪|哪裡|怎麼找|開啟/.test(t)){const hit=pages.map(p=>({p,s:p.kw.split(/\s+/).filter(w=>w&&L.includes(w.toLowerCase())).length+(L.includes(p.n.toLowerCase())?3:0)})).sort((a,b)=>b.s-a.s)[0];
+    if(hit&&hit.s>0)return{text:`「${hit.p.n}」：${hit.p.d[1]}。`,cards:[go(hit.p.k)]};}
+  // 頁面關鍵字
+  const hit=pages.map(p=>({p,s:p.kw.split(/\s+/).filter(w=>w&&L.includes(w.toLowerCase())).length})).sort((a,b)=>b.s-a.s)[0];
+  if(hit&&hit.s>0)return{text:`你可能在找「${hit.p.n}」：${hit.p.d[1]}。`,cards:[go(hit.p.k)]};
+  return{text:'這個問題我還答不出來。你可以問我：怎麼連接 Instagram、怎麼綁定 AI、哪些功能還沒做好、我的角色可以做什麼，或說「帶我去○○」。',cards:[]};
+}
+function asSend(q){q=String(q||'').trim().slice(0,200);if(!q)return;asAdd('user',q);const r=asAnswer(q);asAdd('bot',r.text,r.cards)}
+(function(){
+  const b=document.createElement('button');b.id='asBtn';b.setAttribute('data-act','asopen');b.setAttribute('aria-label','開啟 AI 小助手');b.innerHTML='<span aria-hidden="true">✦</span><span class="astx">小助手</span>';document.body.appendChild(b);
+  const p=document.createElement('aside');p.id='asPanel';p.setAttribute('aria-label','AI 小助手');p.style.display='none';document.body.appendChild(p);
+})();
+Object.assign(ACT,{
+ asopen(){S.as.open=true;asRender();const i=$('#asin');if(i)i.focus()},
+ asclose(){S.as.open=false;asRender()},
+ asq(el){asSend(el.dataset.q)},
+ assend(){const i=$('#asin');if(!i)return;const v=i.value;i.value='';asSend(v)},
+ asgo(el){const c=S.as.msgs[+el.dataset.i].cards[+el.dataset.j];if(c.fn){c.fn()}else{S.view=c.k;S.modal=null;S.open=false;render()}if(innerWidth<640){S.as.open=false;asRender()}},
+ asdo(el){const c=S.as.msgs[+el.dataset.i].cards[+el.dataset.j];if(c.done)return;c.done=c.fn();asRender()},
+ ascancel(el){const c=S.as.msgs[+el.dataset.i].cards[+el.dataset.j];c.done='已取消，沒有執行任何動作。';asRender()}
+});
+document.addEventListener('keydown',e=>{if(e.target.id==='asin'&&e.key==='Enter'&&!e.isComposing&&e.keyCode!==229){e.preventDefault();ACT.assend()}});
+
+S.sel=6;
+render();
+setInterval(()=>{if(S.view==='inbox'&&!S.modal)refreshLive();else if(['dash','home'].includes(S.view)&&!S.modal)render()},30000);
+</script>
+</body>
+</html>
