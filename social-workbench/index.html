@@ -211,6 +211,7 @@ input[type=range]{width:100%;accent-color:var(--brand)}
   #inbox:not(.open) #side{display:none}
   .chip.ai{margin-left:0}
 }
+@media (max-width:640px){.seg.rng button{min-height:44px;padding:5px 14px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -249,7 +250,7 @@ const PERMS=[['看＆回覆留言','全部品牌','全部品牌','只有自己�
 const PROV={OpenAI:{pre:/^sk-/,hint:'通常以 sk- 開頭'},'Claude (Anthropic)':{pre:/^sk-ant-/,hint:'通常以 sk-ant- 開頭'},'Google Gemini':{pre:/^AIza/,hint:'通常以 AIza 開頭'},'其他相容 AI':{pre:/^.{16,}$/,hint:'至少 16 個字元'}};
 
 const S={
- me:'阿哲',view:'home',brand:'all',sel:null,open:false,seq:100,
+ me:'阿哲',view:'home',range:'7d',insMode:'all',brand:'all',sel:null,open:false,seq:100,
  f:{pf:'all',st:'all',pri:'all',sla:'all',type:'all',ai:false,q:''},
  stats:{sug:42,adopt:31,edit:12,auto:14,human:9,gap:3},
  log:[],batchSel:'g1',bd:null,kbEdit:null,wiz:null,modal:null,
@@ -597,6 +598,42 @@ function vBatch(m){
 
 /* ================= 成效報表 ================= */
 function bars(rows,max,cls=''){return rows.map(([l,v,t])=>`<div class="hbar"><span>${l}</span><span class="t"><i class="${cls}" style="width:${max?Math.round(v/max*100):0}%"></i></span><span class="num">${t??v}</span></div>`).join('')}
+/* ===== 報表時間範圍（示範資料：同樣的範圍＋品牌，每次產生的數字都一樣） ===== */
+const RANGES={'7d':{t:'近 7 天',n:7,unit:'每天一根',f:1},'1m':{t:'近 1 個月',n:30,unit:'每天一根',f:30/7},'1y':{t:'近 1 年',n:12,unit:'每月一根',f:365/7}};
+const BBASE={b1:[68,.04],b2:[58,.025],b3:[64,.06]};
+const PFSHARE={'IG 貼文':.28,'FB 粉專':.22,'IG Reels':.17,'FB 廣告':.1,'YouTube':.1,'Google 評論':.07,'Shorts':.06};
+const QS={b1:[['一次可以烘幾件',14],['氣炸鍋多少錢',11],['什麼時候出貨',8],['有沒有其他顏色',5]],b2:[['怎麼連 Wi-Fi',21],['可以餵濕食嗎',9],['飲水機多久清一次',7],['批發價怎麼談',4]],b3:[['價格多少',48],['保固多久',17],['濾芯多久換',10],['可以接冰水機嗎',6]]};
+const seedOf=str=>[...str].reduce((a,ch)=>(a*31+ch.charCodeAt(0))%2147483647,7)||7;
+const rnd=seed=>()=>(seed=seed*16807%2147483647)/2147483647;
+function brandSeries(bid,rk){
+  const R=RANGES[rk],[base,nr]=BBASE[bid]||[40,.04],r=rnd(seedOf(bid+rk)),now=new Date(),out=[];
+  for(let i=0;i<R.n;i++){
+    let label,v;
+    if(rk==='1y'){const d=new Date(now.getFullYear(),now.getMonth()-(R.n-1-i),1);label=`${d.getMonth()+1}月`;v=base*30.4*(.8+r()*.4)}
+    else{const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-(R.n-1-i));label=`${d.getMonth()+1}/${d.getDate()}`;v=base*(.75+r()*.5)}
+    v=Math.round(v);out.push({label,vol:v,neg:Math.round(v*nr*(.6+r()*.8))});
+  }
+  return out;
+}
+const scopeIds=bid=>bid==='all'?S.brands.map(b=>b.id):[bid];
+function series(bid,rk){
+  const all=scopeIds(bid).map(id=>brandSeries(id,rk));
+  return brandSeries('x',rk).map((p,i)=>({label:p.label,vol:all.reduce((a,s)=>a+s[i].vol,0),neg:all.reduce((a,s)=>a+s[i].neg,0)}));
+}
+const sumS=sr=>({vol:sr.reduce((a,p)=>a+p.vol,0),neg:sr.reduce((a,p)=>a+p.neg,0)});
+function trendSvg(sr,rk){
+  const W=420,H=140,n=sr.length,step=(W-20)/n,bw=Math.max(4,step*.62),mx=Math.max(...sr.map(p=>p.vol),1)*1.12;
+  const showV=n<=12,lblEvery=n>12?5:1,np=p=>p.vol?p.neg/p.vol*100:0,y=p=>H-Math.min(np(p),10)/10*H;
+  return `<svg viewBox="0 0 ${W} ${H+24}" width="100%" role="img" aria-label="${RANGES[rk].t}留言量（${RANGES[rk].unit}）與負面比例">${sr.map((p,i)=>{const h=p.vol/mx*H,xx=10+i*step+(step-bw)/2;return `<rect x="${xx}" y="${H-h}" width="${bw}" height="${h}" rx="2" fill="var(--brand)" opacity=".85"><title>${p.label}：${p.vol} 則，負面 ${p.neg} 則</title></rect>${(i%lblEvery===0||i===n-1)?`<text x="${xx+bw/2}" y="${H+16}" text-anchor="middle" font-size="11" fill="var(--muted)">${p.label}</text>`:''}${showV?`<text x="${xx+bw/2}" y="${H-h-4}" text-anchor="middle" font-size="10" fill="var(--ink)">${kfmt(p.vol)}</text>`:''}`}).join('')}<polyline fill="none" stroke="var(--danger)" stroke-width="2" points="${sr.map((p,i)=>`${10+i*step+step/2},${y(p)}`).join(' ')}"/>${n<=12?sr.map((p,i)=>`<circle cx="${10+i*step+step/2}" cy="${y(p)}" r="3" fill="var(--danger)"/>`).join(''):''}</svg>
+  <div class="sub" style="display:flex;gap:14px;flex-wrap:wrap;margin-top:4px"><span><span class="dot" style="background:var(--brand)"></span> 留言量（${RANGES[rk].unit}）</span><span><span class="dot" style="background:var(--danger)"></span> 負面比例（0–10%）</span></div>`;
+}
+const SNAP='<div class="sub" style="margin-top:6px">📸 每月底會自動保存一份統計快照，留言被刪除後數字仍會保留。</div>';
+const rngSeg=()=>`<div class="seg rng" role="group" aria-label="時間範圍">${Object.entries(RANGES).map(([k,r])=>`<button data-act="rng" data-v="${k}" class="${S.range===k?'on':''}" aria-pressed="${S.range===k}">${r.t}</button>`).join('')}</div>`;
+function topQs(ids,rk){
+  const r=rnd(seedOf(ids.join()+rk)),m={};
+  ids.forEach(id=>(QS[id]||[]).forEach(([q,n])=>m[q]=(m[q]||0)+Math.max(1,Math.round(n*RANGES[rk].f*(.85+r()*.3)))));
+  return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,5);
+}
 function vDash(m){
   m.className='';
   const v=vis(),replied=v.filter(c=>c.first!=null),ok=replied.filter(c=>c.first<=60).length;
@@ -607,32 +644,53 @@ function vDash(m){
   const byPf={},byType={},byBr={};v.forEach(c=>{byPf[c.pf]=(byPf[c.pf]||0)+1;byType[c.type]=(byType[c.type]||0)+1;byBr[brandOf(c.brand).name]=(byBr[brandOf(c.brand).name]||0)+1});
   const srt=o=>Object.entries(o).sort((a,b)=>b[1]-a[1]);
   const st=S.stats,adopt=st.sug?Math.round(st.adopt/st.sug*100):0,edit=st.adopt?Math.round(st.edit/st.adopt*100):0;
-  const days=['9/30','10/1','10/2','10/3','10/4','10/5','10/6'],vol=[186,203,175,241,228,160,197],neg=[6,7,5,9,12,8,7];
-  const W=420,H=140,bw=34,mx=260;
-  const svg=`<svg viewBox="0 0 ${W} ${H+24}" width="100%" role="img" aria-label="近 7 日留言量與負面比例">${vol.map((x,i)=>{const h=x/mx*H,xx=14+i*58;return `<rect x="${xx}" y="${H-h}" width="${bw}" height="${h}" rx="3" fill="var(--brand)" opacity=".85"/><text x="${xx+bw/2}" y="${H+16}" text-anchor="middle" font-size="11" fill="var(--muted)">${days[i]}</text><text x="${xx+bw/2}" y="${H-h-4}" text-anchor="middle" font-size="10" fill="var(--ink)">${x}</text>`}).join('')}<polyline fill="none" stroke="var(--danger)" stroke-width="2" points="${neg.map((n,i)=>`${14+i*58+bw/2},${H-n/16*H}`).join(' ')}"/>${neg.map((n,i)=>`<circle cx="${14+i*58+bw/2}" cy="${H-n/16*H}" r="3" fill="var(--danger)"/>`).join('')}</svg>`;
+  const rk=S.range,R=RANGES[rk],sr=series(S.brand,rk),tot=sumS(sr),days=rk==='1y'?365:R.n;
+  const svg=trendSvg(sr,rk);
+  const AI=Object.fromEntries(Object.entries(st).map(([k,x])=>[k,Math.round(x*R.f)]));
+  const pfR=Object.entries(PFSHARE).map(([k,f])=>[k,Math.round(tot.vol*f)]);
+  const brR=scopeIds(S.brand).map(id=>[brandOf(id).name,sumS(brandSeries(id,rk)).vol]).sort((a,b)=>b[1]-a[1]);
   const team={};v.forEach(c=>{if(c.by&&!c.by.startsWith('AI')){const t=team[c.by]=team[c.by]||{n:0,s:0,late:0};t.n++;if(c.first!=null){t.s+=c.first;if(c.first>TYPES[c.type].sla)t.late++}}});
-  m.innerHTML=`<div class="page"><div class="hd"><div><h2>成效報表</h2><div class="sub">${S.brand==='all'?'全部品牌':esc(brandOf(S.brand).name)}</div></div></div>${help('上面的數字是「現在」的狀況，會即時更新；折線與長條圖是示範的近 7 日資料。')}
+  m.innerHTML=`<div class="page"><div class="hd"><div><h2>成效報表</h2><div class="sub">${S.brand==='all'?'全部品牌':esc(brandOf(S.brand).name)}</div></div></div>${help('第一排是收件匣「現在」的狀況，會即時更新。下面的數字和圖表會跟著你選的時間範圍改變（示範資料）。')}
+  <h3 style="margin:0 0 8px;font-size:15px">現在的收件匣</h3>
   <div class="grid kpis">${K('總留言數',v.length)}${K('待處理',cnt('待處理'))}${K('處理中',cnt('處理中'))}${K('等待對方',cnt('等待對方'))}${K('已完成',cnt('已完成'))}${K('不用處理',cnt('無需處理'))}${K('快要超時',near,near?'near':'')}${K('已超時',over,over?'over':'')}${K('平均多久首次回覆',avg+' 分')}${K('60 分鐘內回覆比例',replied.length?Math.round(ok/replied.length*100)+'%':'—',replied.length&&ok/replied.length>=.8?'good':'')}</div>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:22px 0 8px"><h3 style="margin:0;font-size:15px">看一段時間的成效</h3>${rngSeg()}</div>
+  <div class="grid kpis">${K(R.t+'留言數',tot.vol.toLocaleString())}${K('平均每天',Math.round(tot.vol/days).toLocaleString()+' 則')}${K('負面留言',tot.neg.toLocaleString())}${K('負面比例',(tot.vol?Math.round(tot.neg/tot.vol*1000)/10:0)+'%')}</div>
   <div class="grid two" style="margin-top:14px">
-   <div class="card"><h3>近 7 日留言量（長條）與負面比例（紅線）</h3>${svg}</div>
-   <div class="card"><h3>AI 幫了多少忙</h3>${bars([['AI 建議次數',st.sug],['被採用',st.adopt],['修改後採用',st.edit],['AI 自動回覆',st.auto],['AI 轉人工',st.human],['知識不足',st.gap]],Math.max(st.sug,1))}<div class="sub" style="margin-top:6px">建議採用率 <b class="num">${adopt}%</b>・採用後再修改的比例 <b class="num">${edit}%</b></div></div>
-   <div class="card"><h3>各平台留言量</h3>${bars(srt(byPf),Math.max(...Object.values(byPf),1))}</div>
-   <div class="card"><h3>留言類型</h3>${bars(srt(byType).slice(0,8),Math.max(...Object.values(byType),1))}</div>
-   <div class="card"><h3>各品牌留言量</h3>${bars(srt(byBr),Math.max(...Object.values(byBr),1))}</div>
-   <div class="card"><h3>團隊處理狀況</h3>${Object.keys(team).length?`<div class="tblwrap"><table><tr><th>人員</th><th>處理數</th><th>平均首次回覆</th><th>超時</th></tr>${Object.entries(team).map(([n,t])=>`<tr><td>${esc(n)}</td><td class="num">${t.n}</td><td class="num">${t.n?Math.round(t.s/t.n):0} 分</td><td class="num">${t.late}</td></tr>`).join('')}</table></div><div class="sub" style="margin-top:6px">評估績效不要只看數量，請一起看回覆品質與超時比例。</div>`:'<div class="sub">目前還沒有人工處理紀錄。</div>'}</div>
+   <div class="card"><h3>${R.t}留言量（長條）與負面比例（紅線）</h3>${svg}${SNAP}</div>
+   <div class="card"><h3>AI 幫了多少忙（${R.t}）</h3>${bars([['AI 建議次數',AI.sug],['被採用',AI.adopt],['修改後採用',AI.edit],['AI 自動回覆',AI.auto],['AI 轉人工',AI.human],['知識不足',AI.gap]],Math.max(AI.sug,1))}<div class="sub" style="margin-top:6px">建議採用率 <b class="num">${adopt}%</b>・採用後再修改的比例 <b class="num">${edit}%</b></div></div>
+   <div class="card"><h3>各平台留言量（${R.t}）</h3>${bars(pfR,Math.max(...pfR.map(x=>x[1]),1))}</div>
+   <div class="card"><h3>各品牌留言量（${R.t}）</h3>${bars(brR,Math.max(...brR.map(x=>x[1]),1))}</div>
+   <div class="card"><h3>留言類型（現在的收件匣）</h3>${bars(srt(byType).slice(0,8),Math.max(...Object.values(byType),1))}</div>
+   <div class="card"><h3>團隊處理狀況（現在的收件匣）</h3>${Object.keys(team).length?`<div class="tblwrap"><table><tr><th>人員</th><th>處理數</th><th>平均首次回覆</th><th>超時</th></tr>${Object.entries(team).map(([n,t])=>`<tr><td>${esc(n)}</td><td class="num">${t.n}</td><td class="num">${t.n?Math.round(t.s/t.n):0} 分</td><td class="num">${t.late}</td></tr>`).join('')}</table></div><div class="sub" style="margin-top:6px">評估績效不要只看數量，請一起看回覆品質與超時比例。</div>`:'<div class="sub">目前還沒有人工處理紀錄。</div>'}</div>
   </div></div>`;
 }
 
 /* ================= 洞察 ================= */
 function vInsight(m){
   m.className='';
-  const ev=[['danger','負面留言突然增加','過去 2 小時，澄澈淨水「漏水」相關留言增加 3 倍。','客訴'],['warn','Google 低星評論增加','暖屋生活本週出現 3 則 2 星以下評論，內容集中在配送延遲。','負面評論'],['ok','出現潛在商機','森活寵物 Shorts 有寵物旅館詢問批發合作。','大量採購'],['warn','同一問題被重複詢問','「X2 是否能接冰水機」本週被問 6 次，品牌資料裡還沒有答案。','產品詢問']];
-  m.innerHTML=`<div class="page"><div class="hd"><div><h2>社群洞察</h2></div></div>${help('系統把大量留言整理成「值得注意的事」，你可以直接點進去看相關留言。（示範資料）')}
-  <div class="grid two"><div class="card"><h3>值得注意的事件</h3>${ev.map(e=>`<div style="padding:10px 0;border-top:1px solid var(--line)"><span class="tag ${e[0]}">${e[1]}</span><div style="margin:4px 0">${e[2]}</div><button class="btn sm" data-act="evt" data-t="${e[3]}">查看相關留言</button></div>`).join('')}</div>
-  <div class="card"><h3>客人最常問什麼</h3>${bars([['價格多少',48],['怎麼連 Wi-Fi',21],['保固多久',17],['可以接冰水機嗎',6],['何時有優惠',12]],48)}
-   <h3 style="margin-top:16px">客人猶豫的原因</h3><div>・價格是否含安裝說明不清楚<br>・濾芯更換週期與費用資訊散落各處</div></div>
-  <div class="card"><h3>值得製作的內容</h3><div>・「X2 價格與保固一次看懂」短影音<br>・「餵食器 2.4GHz 連線教學」置頂貼文<br>・「折疊烘衣機一次烘幾件」開箱圖卡</div></div>
-  <div class="card"><h3>正面反饋</h3><div>・氣炸鍋 Reels 顏色與外型獲得大量稱讚<br>・餵食器教學影片被留言「很清楚」</div></div></div></div>`;
+  const rk=S.range,R=RANGES[rk],each=S.insMode==='each';
+  const ev=[['b3','danger','負面留言突然增加','過去 2 小時，澄澈淨水「漏水」相關留言增加 3 倍。','客訴'],['b1','warn','Google 低星評論增加','暖屋生活本週出現 3 則 2 星以下評論，內容集中在配送延遲。','負面評論'],['b2','ok','出現潛在商機','森活寵物 Shorts 有寵物旅館詢問批發合作。','大量採購'],['b3','warn','同一問題被重複詢問','「X2 是否能接冰水機」本週被問 6 次，品牌資料裡還沒有答案。','產品詢問']];
+  const evHtml=ids=>{const l=ev.filter(e=>ids.includes(e[0]));return l.length?l.map(e=>`<div style="padding:10px 0;border-top:1px solid var(--line)"><span class="tag ${e[1]}">${e[2]}</span><div style="margin:4px 0">${e[3]}</div><button class="btn sm" data-act="evt" data-t="${e[4]}">查看相關留言</button></div>`).join(''):'<div class="sub">目前沒有需要注意的事。</div>'};
+  const qHtml=ids=>{const q=topQs(ids,rk);return q.length?bars(q,q[0][1]):'<div class="sub">還沒有資料。</div>'};
+  const ctl=`<div class="card" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="sub">時間範圍</span>${rngSeg()}</span>
+    <span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="sub">怎麼看</span><div class="seg rng" role="group" aria-label="品牌檢視方式"><button data-act="insm" data-v="all" class="${each?'':'on'}" aria-pressed="${!each}">全部品牌一起看</button><button data-act="insm" data-v="each" class="${each?'on':''}" aria-pressed="${each}">各品牌分開看</button></div></span></div>`;
+  let body;
+  if(each){
+    body=`<div class="grid two">${S.brands.map(b=>{const sr=brandSeries(b.id,rk),t=sumS(sr);return `<div class="card"><h3>${brandDot(b.id)} ${esc(b.name)}</h3>
+      <div class="sub" style="margin-bottom:8px">${R.t}留言 <b class="num">${t.vol.toLocaleString()}</b> 則・負面比例 <b class="num">${t.vol?Math.round(t.neg/t.vol*1000)/10:0}%</b></div>
+      ${trendSvg(sr,rk)}<h3 style="margin-top:14px">客人最常問什麼</h3>${qHtml([b.id])}<h3 style="margin-top:14px">值得注意的事件（即時）</h3>${evHtml([b.id])}</div>`}).join('')}</div>${SNAP}`;
+  }else{
+    const ids=scopeIds(S.brand),sr=series(S.brand,rk),t=sumS(sr),pf=Object.entries(PFSHARE).map(([k,f])=>[k,Math.round(t.vol*f)]);
+    body=`<div class="grid two">
+    <div class="card"><h3>${R.t}留言趨勢（${S.brand==='all'?'全部品牌':esc(brandOf(S.brand).name)}）</h3>${trendSvg(sr,rk)}${SNAP}</div>
+    <div class="card"><h3>各平台分布（${R.t}）</h3>${bars(pf,Math.max(...pf.map(x=>x[1]),1))}</div>
+    <div class="card"><h3>值得注意的事件（即時）</h3>${evHtml(ids)}</div>
+    <div class="card"><h3>客人最常問什麼（${R.t}）</h3>${qHtml(ids)}
+     <h3 style="margin-top:16px">客人猶豫的原因</h3><div>・價格是否含安裝說明不清楚<br>・濾芯更換週期與費用資訊散落各處</div></div>
+    <div class="card"><h3>值得製作的內容</h3><div>・「X2 價格與保固一次看懂」短影音<br>・「餵食器 2.4GHz 連線教學」置頂貼文<br>・「折疊烘衣機一次烘幾件」開箱圖卡</div></div>
+    <div class="card"><h3>正面反饋</h3><div>・氣炸鍋 Reels 顏色與外型獲得大量稱讚<br>・餵食器教學影片被留言「很清楚」</div></div></div>`;
+  }
+  m.innerHTML=`<div class="page"><div class="hd"><div><h2>社群洞察</h2></div></div>${help('系統把大量留言整理成「值得注意的事」。可以切換時間範圍，也可以把各品牌分開來比較。（示範資料）')}${ctl}${each&&S.brand!=='all'?'<div class="infobox" style="margin-bottom:12px">「各品牌分開看」會列出全部品牌，上方選的品牌不影響這個畫面。</div>':''}${body}</div>`;
 }
 
 /* ================= AI 用量 ================= */
@@ -1067,6 +1125,8 @@ const ACT={
  },
  /* 共用 */
  mclose(){closeModal()},
+ rng(el){S.range=el.dataset.v;render()},
+ insm(el){S.insMode=el.dataset.v;render()},
  logm(el){S.logMonth=+el.dataset.k;render()},
  mmask(el,e){if(e.target===el&&S.modal.type!=='busy')closeModal()},
  mconfirm(){S.modal.fn()},
