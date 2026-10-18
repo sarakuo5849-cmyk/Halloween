@@ -244,7 +244,8 @@ const TYPES={
 const toneOf=t=>['客訴','負面評論','惡意留言'].includes(t)?'danger':['購買詢問','大量採購','潛在商機','商業合作'].includes(t)?'ok':['垃圾訊息','無需回覆'].includes(t)?'':'brand';
 const STATUS=['待處理','處理中','等待對方','已轉交','無需處理','已完成'];
 const DONE=['已完成','無需處理'];
-const ROLES={'管理員':'可以管理品牌、成員、IG 連接、AI 設定與所有規則','主管':'可以查看所有數據、調整案件、介入處理，不能改 AI 與 IG 設定','操作人員':'只能處理自己負責品牌的留言'};
+const ROLES={'管理員':'什麼都能做：管理品牌、成員、社群帳號、AI 金鑰與回覆規則','主管':'看＆回覆全部品牌、刪除留言、收回任何人的回覆、調整回覆規則；不能改品牌、成員、社群帳號與 AI 設定','操作人員':'只處理自己負責品牌的留言；可刪除負責品牌的留言、只能收回自己寫的回覆'};
+const PERMS=[['看＆回覆留言','全部品牌','全部品牌','只有自己負責的'],['刪除客人留言','✅','✅','✅（只限自己負責的品牌）'],['收回我方回覆','✅ 任何人的','✅ 任何人的','✅ 只限自己寫的'],['調整回覆規則','✅','✅','❌'],['新增／刪除品牌','✅','❌','❌'],['連接社群帳號','✅','❌','❌'],['綁定 AI 金鑰','✅','❌','❌'],['管理成員、核准加入','✅','❌','❌']];
 const PROV={OpenAI:{pre:/^sk-/,hint:'通常以 sk- 開頭'},'Claude (Anthropic)':{pre:/^sk-ant-/,hint:'通常以 sk-ant- 開頭'},'Google Gemini':{pre:/^AIza/,hint:'通常以 AIza 開頭'},'其他相容 AI':{pre:/^.{16,}$/,hint:'至少 16 個字元'}};
 
 const S={
@@ -300,6 +301,11 @@ const aiKey=id=>S.aiKeys.find(k=>k.id===id);
 const teamNames=()=>S.team.filter(t=>t.active).map(t=>t.name);
 const meRole=()=>(S.team.find(t=>t.name===S.me)||{}).role||'操作人員';
 const canRetract=r=>['管理員','主管'].includes(meRole())||r.by===S.me;
+const meBrands=()=>{const t=S.team.find(x=>x.name===S.me);return !t?[]:t.brands==='all'?S.brands.map(b=>b.id):t.brands};
+const canDelete=c=>['管理員','主管'].includes(meRole())||meBrands().includes(c.brand);
+const PFNAME={FB:'Facebook',IG:'Instagram',YT:'YouTube',G:'Google'};
+const pfName=p=>PFNAME[(PF[p]||[])[0]]||p;
+const noDelete=c=>c.pf==='Google 評論';
 
 const C=o=>S.comments.push(Object.assign({id:S.comments.length+1,tags:[],risk:'低',status:'待處理',owner:null,lock:null,first:null,by:null,group:null,notes:[],ctx:[],sent:[],styleIdx:0,draft:null,follow:false,kbOpen:false},o,{created:T0-o.age*60000}));
 const R=(style,text)=>({style,text});
@@ -414,7 +420,7 @@ function renderNav(){
      if(k==='ai'&&ah.k!=='ok')b=`<span class="badge ${ah.k==='bad'?'':'w'}" title="${esc(ah.t)}">!</span>`;
      if(k==='ig'&&!S.ig.length)b=`<span class="badge w">!</span>`;
      return `<button data-act="nav" data-v="${k}" class="${cur===k?'on':''}" ${cur===k?'aria-current="page"':''}><span><span class="ic">${ic}</span>${n}</span>${b}</button>`}).join('')).join('')+
-   `<div class="me"><b>${esc(S.me)}</b>${esc(meRole())}・${esc(S.ws?.name||'示範公司')}<label style="display:block;margin-top:6px"><span class="sub">切換身分（示範用）</span><select data-in="me" aria-label="切換身分" style="width:100%;margin-top:2px">${S.team.filter(t=>t.active).map(t=>`<option value="${esc(t.name)}" ${t.name===S.me?'selected':''}>${esc(t.name)}（${t.role}）</option>`).join('')}</select></label><div class="theme"><button data-act="theme" style="padding:0;color:inherit;text-decoration:underline">切換淺色／深色</button></div></div>`;
+   `<div class="me"><b>${esc(S.me)}</b>${esc(meRole())}・${esc(S.ws?.name||'示範公司')}<label style="display:block;margin-top:6px"><span style="color:inherit">切換身分（示範用）</span><select data-in="me" aria-label="切換身分" style="width:100%;margin-top:2px;color:var(--ink);background:var(--panel);opacity:1">${S.team.filter(t=>t.active).map(t=>`<option value="${esc(t.name)}" ${t.name===S.me?'selected':''}>${esc(t.name)}（${t.role}）</option>`).join('')}</select></label><div class="theme"><button data-act="theme" style="padding:0;color:inherit;text-decoration:underline">切換淺色／深色</button></div></div>`;
   const ah2=aiHealth();
   $('#top').innerHTML=(BRANDBAR.includes(S.view)?`<span class="lbl">看哪個品牌</span><button class="chip ${S.brand==='all'?'on':''}" data-act="brand" data-v="all">全部品牌</button>`+
    S.brands.map(b=>`<button class="chip ${S.brand===b.id?'on':''}" data-act="brand" data-v="${b.id}">${brandDot(b.id)}${esc(b.name)}</button>`).join(''):`<span class="lbl">${esc(S.ws?.name||'示範公司')}</span>`)+
@@ -548,7 +554,9 @@ function renderDetail(){
     <div class="card"><h3>其他處理</h3><div class="btns" style="margin-top:0">
       <button class="btn" data-act="like">按讚就好</button><button class="btn" data-act="skip">不用處理</button>
       <button class="btn" data-act="follow">${c.follow?'取消稍後追蹤':'稍後追蹤'}</button>
-      <button class="btn danger" data-act="hide">${c._cf?'再按一次確認隱藏':'隱藏留言'}</button></div>
+      <button class="btn danger" data-act="hide">${c._cf?'再按一次確認隱藏':'隱藏留言'}</button>
+      ${canDelete(c)?(noDelete(c)?`<button class="btn danger" disabled title="Google 不讓商家刪除客人的評論">刪除留言</button><span class="tag">不支援</span>`:`<button class="btn danger" data-act="cdel">刪除留言</button>`):''}</div>
+      ${canDelete(c)&&noDelete(c)?'<div class="sub" style="margin-top:8px">Google 不讓商家刪除客人的評論，只能回覆或向 Google 檢舉。</div>':''}
       <div class="sub" style="margin-top:8px">隱藏、刪除屬於較高風險動作，需要再確認一次。</div></div>`;
 }
 function refreshLive(){
@@ -815,7 +823,7 @@ function vTeam(m){
   ${help('決定「誰」可以處理「哪些品牌」的留言。每個人可以設定角色、負責的品牌，並寫備註。')}
   ${!admin?'<div class="warnbox">只有「管理員」可以新增或修改成員。</div>':''}
   <div class="card"><div class="tblwrap"><table><tr><th>姓名</th><th>角色</th><th>負責品牌</th><th>備註</th><th>狀態</th><th></th></tr>${S.team.map(t=>`<tr><td><b>${esc(t.name)}</b><div class="sub">${esc(t.email)}</div></td><td><span class="tag ${t.role==='管理員'?'brand':''}">${t.role}</span></td><td>${t.brands==='all'?'全部品牌':(t.brands.map(id=>brandOf(id)).filter(b=>b.name!=='（已刪除的品牌）').map(b=>`<span class="tag">${esc(b.name)}</span>`).join(' ')||'<span class="sub">尚未指定</span>')}</td><td class="sub">${esc(t.note||'')}</td><td><span class="tag ${t.active?'ok':''}">${t.active?'啟用中':'已停用'}</span></td><td style="white-space:nowrap">${admin?`<button class="btn sm" data-act="tedit" data-id="${t.id}">編輯</button> <button class="btn sm danger" data-act="tdel" data-id="${t.id}">移除</button>`:''}</td></tr>`).join('')}</table></div></div>
-  <div class="card"><h3>三種角色能做什麼</h3><div class="tblwrap"><table><tr><th>角色</th><th>權限</th></tr>${Object.entries(ROLES).map(([r,d])=>`<tr><td><b>${r}</b></td><td>${d}</td></tr>`).join('')}</table></div></div></div>`;
+  <div class="card"><h3>三種角色能做什麼</h3><div class="tblwrap"><table><tr><th>能做的事</th><th>管理員</th><th>主管</th><th>操作人員</th></tr>${PERMS.map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('')}</table></div>${help('收回回覆、刪除留言時，社群平台上的內容也會一起刪除。Google 評論不讓商家刪除客人的評論。')}</div></div>`;
 }
 /* ================= 回覆規則 ================= */
 function vRules(m){
@@ -942,7 +950,9 @@ const ACT={
  skip(){const c=cm(S.sel);c.status='無需處理';c.lock=null;logAdd(S.me,'標記不用處理',`${c.u}：${c.text.slice(0,18)}`);renderList();renderDetail();renderNav()},
  follow(){const c=cm(S.sel);c.follow=!c.follow;logAdd(S.me,c.follow?'稍後追蹤':'取消追蹤',c.u);toast(c.follow?'已加入稍後追蹤':'已取消追蹤');renderDetail()},
  retract(el){const c=cm(S.sel),r=c.sent[+el.dataset.i];if(!r||!canRetract(r)){toast('你只能收回自己寫的回覆');return}
-  openModal({type:'confirm',title:'收回這則回覆？',body:'收回後，這則回覆會從平台和工具裡一起消失。操作紀錄只會記下誰、何時、在哪篇貼文收回，不會保留回覆內容。',ok:'收回',danger:1,fn(){const i=c.sent.indexOf(r);if(i>-1)c.sent.splice(i,1);if(!c.sent.length)c.by=null;else c.by=c.sent[c.sent.length-1].by;logAdd(S.me,'收回回覆',`${c.pf}「${c.post}」`);closeModal();toast('已收回');renderList();renderDetail();renderNav()}})},
+  openModal({type:'confirm',title:'收回這則回覆？',body:`收回後，<b>${esc(pfName(c.pf))} 上的這則回覆也會一起刪除</b>，工具裡也會消失，無法復原。<span class="tag">僅介面</span><div class="sub" style="margin-top:6px">操作紀錄只會記下誰、何時、在哪篇貼文收回，不會保留回覆內容。</div>`,ok:'收回',danger:1,fn(){const i=c.sent.indexOf(r);if(i>-1)c.sent.splice(i,1);if(!c.sent.length)c.by=null;else c.by=c.sent[c.sent.length-1].by;logAdd(S.me,'收回回覆',`${c.pf}「${c.post}」`);closeModal();toast(`已收回，${pfName(c.pf)} 上也已刪除`);renderList();renderDetail();renderNav()}})},
+ cdel(){const c=cm(S.sel);if(!c||noDelete(c))return;if(!canDelete(c)){toast('你只能刪除自己負責品牌的留言');return}
+  openModal({type:'confirm',title:'刪除這則客人留言？',body:`刪除後，<b>${esc(pfName(c.pf))} 上的這則留言也會一起刪除</b>，工具裡也會消失，無法復原。<span class="tag">僅介面</span><div class="sub" style="margin-top:6px">適合處理廣告、洗版、惡意留言。操作紀錄只會記下誰、何時、在哪篇貼文刪除，不會保留留言內容和留言者名稱。</div>`,ok:'確定刪除',danger:1,fn(){S.comments=S.comments.filter(x=>x!==c);S.sel=null;S.open=false;logAdd(S.me,'刪除留言',`${c.pf}「${c.post}」`);closeModal();toast(`已刪除，${pfName(c.pf)} 上也已刪除`);render()}})},
  hide(){const c=cm(S.sel);if(!c._cf){c._cf=true;renderDetail();return}c._cf=false;c.status='無需處理';c.lock=null;logAdd(S.me,'隱藏留言',`${c.u}：${c.text.slice(0,18)}（人工確認）`);toast('已隱藏留言');renderList();renderDetail();renderNav()},
  evt(el){S.f={pf:'all',st:'all',pri:'all',sla:'all',type:el.dataset.t,ai:false,q:''};S.view='inbox';render()},
  bsel(el){S.batchSel=el.dataset.g;render()},
