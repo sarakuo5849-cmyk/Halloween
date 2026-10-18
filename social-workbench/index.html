@@ -344,8 +344,16 @@ C({brand:'b1',pf:'FB 粉專',post:'品牌故事：暖屋的第一年',u:'阿凱'
 C({brand:'b2',pf:'IG 貼文',post:'自動餵食器使用心得',u:'bobo_dad',text:'餵食器可以設定幾餐？',age:300,type:'產品詢問',pri:'中',status:'已完成',first:27,by:'志豪',owner:'志豪',ai:{conf:93,action:'',kb:[],replies:[]},sent:[{by:'志豪',t:'最多可設定每天 6 餐喔！',ai:true,edited:true}]});
 C({brand:'b3',pf:'FB 粉專',post:'X2 淨水器開箱分享',u:'Lisa Hsu',text:'我的濾芯多久要換？',age:360,type:'售後問題',pri:'中',status:'等待對方',first:52,by:'阿哲',owner:'阿哲',ai:{conf:90,action:'',kb:[],replies:[]},sent:[{by:'阿哲',t:'您好，請提供購買日期，我們協助確認更換時間。',ai:true}]});
 
-const logAdd=(who,act,detail,auto)=>S.log.unshift({t:Date.now(),who,act,detail,auto:!!auto});
-[['AI 自動','自動回覆','IG Reels「太美了」→ 稱讚、低風險、信心 97%',1],['系統','自動切換 AI','「公司主力」額度不足，暖屋生活改用備援',1],['小琪','接手處理','Shorts「喵星旅館」批發詢問'],['Ruby','接收轉交','FB 粉專「Sophie 美食頻道」商業合作']].forEach((a,i)=>S.log.push({t:T0-(i+1)*9*60000,who:a[0],act:a[1],detail:a[2],auto:!!a[3]}));
+const postOf=c=>`${c.pf}「${c.post}」`;
+const logAdd=(who,act,detail,auto,post)=>S.log.unshift({t:Date.now(),who,act,detail,auto:!!auto,post:post||''});
+[['AI 自動','自動回覆','稱讚、低風險、信心 97%',1,'IG Reels「Reels：氣炸鍋早餐 5 分鐘」'],['系統','自動切換 AI','「公司主力」額度不足，暖屋生活改用備援',1],['小琪','接手處理','喵星旅館 批發詢問',0,'Shorts「Shorts：貓咪自動飲水機」'],['Ruby','接收轉交','Sophie 美食頻道 商業合作',0,'FB 粉專「品牌故事：暖屋的第一年」']].forEach((a,i)=>S.log.push({t:T0-(i+1)*9*60000,who:a[0],act:a[1],detail:a[2],auto:!!a[3],post:a[4]||''}));
+/* 上個月、上上個月的示範紀錄（已封存） */
+(()=>{const d=new Date(T0),M=(k,day,h,mi)=>new Date(d.getFullYear(),d.getMonth()-k,day,h,mi).getTime();
+ [[1,28,16,40,'阿哲','送出回覆','人工撰寫 → 已完成',0,'FB 粉專「X2 淨水器開箱分享」'],[1,25,11,5,'系統','留言已被刪除','有一則留言被刪除（內容不保留）；我方回覆（志豪）：您好，濾芯建議每 6 個月更換一次喔！',1,'IG 貼文「自動餵食器使用心得」'],
+  [1,21,14,22,'小琪','收回回覆','Instagram 上已同步刪除',0,'IG Reels「貓咪的午後時光」'],[1,15,9,48,'Ruby','調整回覆規則','客訴時限 30 → 15 分鐘'],[1,9,17,3,'志豪','刪除留言','Facebook 上已同步刪除',0,'FB 粉專「中秋節快樂」'],[1,3,10,30,'阿哲','綁定 AI','測試用（Google Gemini）'],
+  [2,30,15,12,'AI 自動','自動回覆','稱讚、低風險、信心 95%',1,'IG 貼文「夏日冰飲推薦」'],[2,22,13,45,'阿哲','新增成員','志豪'],[2,18,10,2,'小琪','送出回覆','採用 AI 草稿 → 已完成',0,'YouTube「自動餵食器開箱與設定教學」'],[2,11,16,30,'系統','留言已被刪除','有一則留言被刪除（內容不保留）',1,'FB 廣告「夏季淨水器廣告：X2 限時活動」'],[2,4,11,20,'阿哲','連接 IG','@warmhome.official → 暖屋生活']
+ ].forEach(a=>{const t=M(a[0],a[1],a[2],a[3]);if(new Date(t).getMonth()===(d.getMonth()-a[0]+12)%12)S.log.push({t,who:a[4],act:a[5],detail:a[6],auto:!!a[7],post:a[8]||''})});
+})();
 
 /* ================= 工具 ================= */
 const fmt=ms=>{const m=Math.floor(ms/60000);return m<1?'不到 1 分鐘':m>=60?`${Math.floor(m/60)} 小時 ${m%60} 分`:`${m} 分鐘`};
@@ -400,7 +408,7 @@ function aiHealth(){
   if(fo)return{k:'warn',t:`${fo} 個品牌已切到備援 AI`};
   return{k:'ok',t:'AI 運作正常'};
 }
-const claim=c=>{if(c.status==='待處理'){c.status='處理中';c.lock=S.me;c.owner=c.owner||S.me;logAdd(S.me,'開始處理',`${c.u}：${c.text.slice(0,20)}`);renderList();renderNav()}else if(!c.lock){c.lock=S.me}};
+const claim=c=>{if(c.status==='待處理'){c.status='處理中';c.lock=S.me;c.owner=c.owner||S.me;logAdd(S.me,'開始處理',`${c.u}：${c.text.slice(0,20)}`,false,postOf(c));renderList();renderNav()}else if(!c.lock){c.lock=S.me}};
 
 /* ================= 導覽 ================= */
 const NAVG=[
@@ -836,7 +844,14 @@ function vRules(m){
 }
 function vLog(m){
   m.className='';
-  m.innerHTML=`<div class="page"><div class="hd"><div><h2>操作紀錄</h2></div></div>${help('誰、什麼時候、做了什麼，都會記在這裡，方便日後回頭檢查。')}<div class="card"><div class="tblwrap"><table><tr><th>時間</th><th>人員</th><th>動作</th><th>內容</th><th>來源</th></tr>${S.log.map(l=>`<tr><td class="num" style="white-space:nowrap">${new Date(l.t).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})}</td><td>${esc(l.who)}</td><td>${esc(l.act)}</td><td>${esc(l.detail)}</td><td>${l.auto?'<span class="tag brand">系統自動</span>':'人工'}</td></tr>`).join('')}</table></div></div></div>`;
+  const now=new Date(),months=[0,1,2].map(k=>{const d=new Date(now.getFullYear(),now.getMonth()-k,1);return{k,y:d.getFullYear(),m:d.getMonth()}});
+  const cur=months[S.logMonth||0],arch=cur.k>0;
+  const rows=S.log.filter(l=>{const d=new Date(l.t);return d.getFullYear()===cur.y&&d.getMonth()===cur.m}).sort((a,b)=>b.t-a.t);
+  const when=t=>new Date(t).toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
+  m.innerHTML=`<div class="page"><div class="hd"><div><h2>操作紀錄</h2></div></div>${help('誰、什麼時候、在哪篇貼文做了什麼，都會記在這裡。每個月底會自動打包封存，舊月份只能看、不能改。')}
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px"><span class="sub">看哪個月份</span>${months.map(x=>`<button class="chip ${x.k===cur.k?'on':''}" data-act="logm" data-k="${x.k}">${x.k?`${x.m+1} 月`:`本月（${x.m+1} 月）`}${x.k?' <span class="tag">已封存</span>':''}</button>`).join('')}</div>
+  ${arch?`<div class="infobox" style="margin-bottom:12px">🔒 <b>${cur.m+1} 月已封存（唯讀）</b>：這個月的紀錄已經打包保存，只能查看，不能修改或刪除。<span class="tag">僅介面</span></div>`:''}
+  <div class="card"><div class="tblwrap"><table><tr><th>日期時間</th><th>人員</th><th>動作</th><th>貼文／影片</th><th>內容</th><th>來源</th></tr>${rows.length?rows.map(l=>`<tr><td class="num" style="white-space:nowrap">${when(l.t)}</td><td>${esc(l.who)}</td><td>${esc(l.act)}</td><td>${l.post?esc(l.post):'<span class="sub">—</span>'}</td><td>${esc(l.detail)}</td><td>${l.auto?'<span class="tag brand">系統自動</span>':'人工'}</td></tr>`).join(''):'<tr><td colspan="6" class="sub">這個月沒有紀錄。</td></tr>'}</table></div></div></div>`;
 }
 
 /* ================= 彈出視窗 ================= */
@@ -900,7 +915,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.modal&&S.modal.ty
 /* 先刪平台上的，平台回覆「成功」後才刪工具裡的（原型用計時器模擬） */
 function platformDel(c,what,done){
   openModal({type:'busy',title:`正在刪除 ${pfName(c.pf)} 上的${what}…`,body:`<div class="sub">步驟 ① 先請 ${esc(pfName(c.pf))} 刪除 → ② ${esc(pfName(c.pf))} 回覆「已刪除」→ ③ 工具裡才跟著刪除。<span class="tag">僅介面</span></div>`});
-  setTimeout(()=>{closeModal();done(`・${pfName(c.pf)} 上已同步刪除`)},900);
+  setTimeout(()=>{closeModal();done(`${pfName(c.pf)} 上已同步刪除`)},900);
 }
 
 /* ================= 動作 ================= */
@@ -945,35 +960,35 @@ const ACT={
   if(!txt){toast('請先輸入回覆內容');return}
   const ai=!!c.usedAi,edited=ai&&txt!==c.aiText,toKb=$('#toKb')&&$('#toKb').checked;
   finish(c,el.dataset.s,S.me,ai,edited,txt);
-  logAdd(S.me,'送出回覆',`${c.u}：${ai?(edited?'採用 AI 草稿並修改':'採用 AI 草稿'):'人工撰寫'}→ ${el.dataset.s}`);
-  if(toKb){S.kb.push({id:Date.now(),b:c.brand,cat:'常見問題',title:`${c.text}（人工答覆：${txt.slice(0,30)}…）`,on:true,d:'今天'});c.ai.gap=false;logAdd(S.me,'提交知識',c.text.slice(0,24))}
+  logAdd(S.me,'送出回覆',`${c.u}：${ai?(edited?'採用 AI 草稿並修改':'採用 AI 草稿'):'人工撰寫'}→ ${el.dataset.s}`,false,postOf(c));
+  if(toKb){S.kb.push({id:Date.now(),b:c.brand,cat:'常見問題',title:`${c.text}（人工答覆：${txt.slice(0,30)}…）`,on:true,d:'今天'});c.ai.gap=false;logAdd(S.me,'提交知識',c.text.slice(0,24),false,postOf(c))}
   if(edited)S.pendingEx.push({id:Date.now()+1,b:c.brand,q:c.text,a:txt,by:S.me});
   toast(el.dataset.s==='已完成'?'已送出並結案':'已送出，等對方回覆');
   renderList();renderDetail();renderNav();
  },
- autoreply(){const c=cm(S.sel);if(!useAI(c,'reply'))return;const r=c.ai.replies[0];finish(c,'已完成','AI 自動',false,false,r.text);S.stats.auto++;c.owner='AI';logAdd('AI 自動','自動回覆',`${c.u}：${c.type}、低風險、信心 ${c.ai.conf}%`,true);toast('AI 已自動回覆');renderList();renderDetail();renderNav()},
- takeover(){const c=cm(S.sel);logAdd(S.me,'接手處理',`原處理人 ${c.lock}`);c.lock=S.me;toast('已接手');renderList();renderDetail()},
- note(){const c=cm(S.sel),v=$('#noteIn').value.trim();if(!v)return;c.notes.push({by:S.me,t:v});logAdd(S.me,'內部備註',v.slice(0,30));renderDetail()},
- like(){const c=cm(S.sel);c.status='無需處理';c.lock=null;logAdd(S.me,'按讚',`${c.u}：${c.text.slice(0,18)}`);toast('已按讚並標記為不用處理');renderList();renderDetail();renderNav()},
- skip(){const c=cm(S.sel);c.status='無需處理';c.lock=null;logAdd(S.me,'標記不用處理',`${c.u}：${c.text.slice(0,18)}`);renderList();renderDetail();renderNav()},
- follow(){const c=cm(S.sel);c.follow=!c.follow;logAdd(S.me,c.follow?'稍後追蹤':'取消追蹤',c.u);toast(c.follow?'已加入稍後追蹤':'已取消追蹤');renderDetail()},
+ autoreply(){const c=cm(S.sel);if(!useAI(c,'reply'))return;const r=c.ai.replies[0];finish(c,'已完成','AI 自動',false,false,r.text);S.stats.auto++;c.owner='AI';logAdd('AI 自動','自動回覆',`${c.u}：${c.type}、低風險、信心 ${c.ai.conf}%`,true,postOf(c));toast('AI 已自動回覆');renderList();renderDetail();renderNav()},
+ takeover(){const c=cm(S.sel);logAdd(S.me,'接手處理',`原處理人 ${c.lock}`,false,postOf(c));c.lock=S.me;toast('已接手');renderList();renderDetail()},
+ note(){const c=cm(S.sel),v=$('#noteIn').value.trim();if(!v)return;c.notes.push({by:S.me,t:v});logAdd(S.me,'內部備註',v.slice(0,30),false,postOf(c));renderDetail()},
+ like(){const c=cm(S.sel);c.status='無需處理';c.lock=null;logAdd(S.me,'按讚',`${c.u}：${c.text.slice(0,18)}`,false,postOf(c));toast('已按讚並標記為不用處理');renderList();renderDetail();renderNav()},
+ skip(){const c=cm(S.sel);c.status='無需處理';c.lock=null;logAdd(S.me,'標記不用處理',`${c.u}：${c.text.slice(0,18)}`,false,postOf(c));renderList();renderDetail();renderNav()},
+ follow(){const c=cm(S.sel);c.follow=!c.follow;logAdd(S.me,c.follow?'稍後追蹤':'取消追蹤',c.u,false,postOf(c));toast(c.follow?'已加入稍後追蹤':'已取消追蹤');renderDetail()},
  simdel(){const c=cm(S.sel);if(!c)return;
   const ours=c.sent.map(r=>`我方回覆（${r.by}）：${r.t}`).join('；');
   S.comments=S.comments.filter(x=>x!==c);S.sel=null;S.open=false;
-  logAdd('系統','留言已被刪除',`${c.pf}「${c.post}」：有一則留言被刪除（內容不保留）${ours?'；'+ours:''}`,true);
+  logAdd('系統','留言已被刪除',`有一則留言被刪除（內容不保留）${ours?'；'+ours:''}`,true,postOf(c));
   toast('對方已刪除留言，工具裡也跟著移除了');render()},
  retract(el){const c=cm(S.sel),r=c.sent[+el.dataset.i];if(!r||!canRetract(r)){toast('你只能收回自己寫的回覆');return}
-  openModal({type:'confirm',title:'收回這則回覆？',body:`收回後，<b>${esc(pfName(c.pf))} 上的這則回覆也會一起刪除</b>，工具裡也會消失，無法復原。<span class="tag">僅介面</span><div class="sub" style="margin-top:6px">操作紀錄只會記下誰、何時、在哪篇貼文收回，不會保留回覆內容。</div>`,ok:'收回',danger:1,fn(){platformDel(c,'回覆',sync=>{const i=c.sent.indexOf(r);if(i>-1)c.sent.splice(i,1);c.by=c.sent.length?c.sent[c.sent.length-1].by:null;logAdd(S.me,'收回回覆',`${c.pf}「${c.post}」${sync}`);toast(`已收回，${pfName(c.pf)} 上也已刪除`);render()})}})},
+  openModal({type:'confirm',title:'收回這則回覆？',body:`收回後，<b>${esc(pfName(c.pf))} 上的這則回覆也會一起刪除</b>，工具裡也會消失，無法復原。<span class="tag">僅介面</span><div class="sub" style="margin-top:6px">操作紀錄只會記下誰、何時、在哪篇貼文收回，不會保留回覆內容。</div>`,ok:'收回',danger:1,fn(){platformDel(c,'回覆',sync=>{const i=c.sent.indexOf(r);if(i>-1)c.sent.splice(i,1);c.by=c.sent.length?c.sent[c.sent.length-1].by:null;logAdd(S.me,'收回回覆',sync,false,postOf(c));toast(`已收回，${pfName(c.pf)} 上也已刪除`);render()})}})},
  cdel(){const c=cm(S.sel);if(!c||noDelete(c))return;if(!canDelete(c)){toast('你只能刪除自己負責品牌的留言');return}
-  openModal({type:'confirm',title:'刪除這則客人留言？',body:`刪除後，<b>${esc(pfName(c.pf))} 上的這則留言也會一起刪除</b>，工具裡也會消失，無法復原。<span class="tag">僅介面</span><div class="sub" style="margin-top:6px">適合處理廣告、洗版、惡意留言。操作紀錄只會記下誰、何時、在哪篇貼文刪除，不會保留留言內容和留言者名稱。</div>`,ok:'確定刪除',danger:1,fn(){platformDel(c,'留言',sync=>{S.comments=S.comments.filter(x=>x!==c);if(S.sel===c.id){S.sel=null;S.open=false}logAdd(S.me,'刪除留言',`${c.pf}「${c.post}」${sync}`);toast(`已刪除，${pfName(c.pf)} 上也已刪除`);render()})}})},
- hide(){const c=cm(S.sel);if(!c._cf){c._cf=true;renderDetail();return}c._cf=false;c.status='無需處理';c.lock=null;logAdd(S.me,'隱藏留言',`${c.u}：${c.text.slice(0,18)}（人工確認）`);toast('已隱藏留言');renderList();renderDetail();renderNav()},
+  openModal({type:'confirm',title:'刪除這則客人留言？',body:`刪除後，<b>${esc(pfName(c.pf))} 上的這則留言也會一起刪除</b>，工具裡也會消失，無法復原。<span class="tag">僅介面</span><div class="sub" style="margin-top:6px">適合處理廣告、洗版、惡意留言。操作紀錄只會記下誰、何時、在哪篇貼文刪除，不會保留留言內容和留言者名稱。</div>`,ok:'確定刪除',danger:1,fn(){platformDel(c,'留言',sync=>{S.comments=S.comments.filter(x=>x!==c);if(S.sel===c.id){S.sel=null;S.open=false}logAdd(S.me,'刪除留言',sync,false,postOf(c));toast(`已刪除，${pfName(c.pf)} 上也已刪除`);render()})}})},
+ hide(){const c=cm(S.sel);if(!c._cf){c._cf=true;renderDetail();return}c._cf=false;c.status='無需處理';c.lock=null;logAdd(S.me,'隱藏留言',`${c.u}：${c.text.slice(0,18)}（人工確認）`,false,postOf(c));toast('已隱藏留言');renderList();renderDetail();renderNav()},
  evt(el){S.f={pf:'all',st:'all',pri:'all',sla:'all',type:el.dataset.t,ai:false,q:''};S.view='inbox';render()},
  bsel(el){S.batchSel=el.dataset.g;render()},
  ball(){const G=groups()[S.batchSel]||[];const all=G.every(c=>c._b);G.forEach(c=>c._b=!all);render()},
  bgen(){const G=(groups()[S.batchSel]||[]).filter(c=>c._b);if(!G.length){toast('請先勾選要處理的留言');return}
   let n=0;G.forEach((c,i)=>{if(recordUse(c.brand,'reply')){c._bd=POOL[i%POOL.length](c.u);n++}});
   if(!n){toast('這個品牌目前沒有可用的 AI');return}S.stats.sug+=n;render();toast(`已為 ${n} 則留言產生回覆`)},
- bsend(){const G=(groups()[S.batchSel]||[]).filter(c=>c._b&&c._bd);if(!G.length){toast('請先產生並勾選回覆');return}G.forEach(c=>{finish(c,'已完成',S.me,true,false,c._bd);c._b=false;c._bd=null;logAdd(S.me,'一次回覆',`${c.u}：價格詢問`)});toast(`已送出 ${G.length} 則回覆`);render()},
+ bsend(){const G=(groups()[S.batchSel]||[]).filter(c=>c._b&&c._bd);if(!G.length){toast('請先產生並勾選回覆');return}G.forEach(c=>{finish(c,'已完成',S.me,true,false,c._bd);c._b=false;c._bd=null;logAdd(S.me,'一次回覆',`${c.u}：價格詢問`,false,postOf(c))});toast(`已送出 ${G.length} 則回覆`);render()},
  /* 品牌 */
  bnew(){startWiz('new')},
  bedit(el){S.bd=el.dataset.id;S.kbEdit=null;S.view='brand';render()},
@@ -1052,6 +1067,7 @@ const ACT={
  },
  /* 共用 */
  mclose(){closeModal()},
+ logm(el){S.logMonth=+el.dataset.k;render()},
  mmask(el,e){if(e.target===el&&S.modal.type!=='busy')closeModal()},
  mconfirm(){S.modal.fn()},
  exok(el){const i=S.pendingEx.findIndex(e=>e.id==el.dataset.id);if(i>-1){logAdd(S.me,'收錄回覆範例',S.pendingEx[i].q);S.pendingEx.splice(i,1);toast('已收錄為 AI 參考範例');render()}},
@@ -1067,8 +1083,8 @@ function onIn(e){
   if(k==='ai'){F.ai=el.checked;renderList();return}
   if(k==='draft'&&c){claim(c);c.draft=el.value;return}
   if(k==='std'&&c&&el.value){claim(c);c.draft=el.value;c.usedAi=false;renderDetail();return}
-  if(k==='status'&&c){c.status=el.value;if(DONE.includes(c.status))c.lock=null;logAdd(S.me,'變更狀態',`${c.u} → ${c.status}`);renderList();renderDetail();renderNav();return}
-  if(k==='transfer'&&c&&el.value){c.owner=el.value;c.status='已轉交';c.lock=null;logAdd(S.me,'轉交',`${c.u} → ${el.value}`);toast(`已轉交給 ${el.value}`);renderList();renderDetail();renderNav();return}
+  if(k==='status'&&c){c.status=el.value;if(DONE.includes(c.status))c.lock=null;logAdd(S.me,'變更狀態',`${c.u} → ${c.status}`,false,postOf(c));renderList();renderDetail();renderNav();return}
+  if(k==='transfer'&&c&&el.value){c.owner=el.value;c.status='已轉交';c.lock=null;logAdd(S.me,'轉交',`${c.u} → ${el.value}`,false,postOf(c));toast(`已轉交給 ${el.value}`);renderList();renderDetail();renderNav();return}
   if(k==='manualai'&&c){const a=S.brandAI[c.brand]=S.brandAI[c.brand]||{};a.manual=el.value;logAdd(S.me,'手動切換 AI',`${brandOf(c.brand).name} → ${el.value?aiKey(el.value).label:'自動'}`);toast(el.value?'已手動切換':'已改回自動');renderDetail();renderNav();return}
   if(k==='bchk'){cm(+el.dataset.id)._b=el.checked;return}
   if(k==='bname'){const b=brandOf(S.bd);b.name=el.value;if(S.profiles[S.bd])S.profiles[S.bd].name=el.value;return}
