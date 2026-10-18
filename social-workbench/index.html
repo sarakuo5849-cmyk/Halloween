@@ -522,6 +522,7 @@ function renderDetail(){
     <div class="bubble">${esc(c.text)}</div>
     ${c.sent.map((r,i)=>`<div class="bubble brandside" style="margin-top:8px">${esc(r.t)}<div class="sub" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span>${esc(r.by)}${r.ai?'・採用 AI 建議':''}${r.edited?'（已人工修改）':''}</span>${canRetract(r)?`<button class="btn sm" data-act="retract" data-i="${i}" style="margin-left:auto">收回</button>`:''}</div></div>`).join('')}
   </div>
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:-4px 0 12px"><button class="btn sm" data-act="simdel">模擬：對方刪除了這則留言</button><span class="tag">僅介面</span><span class="sub">真的串 ${esc(pfName(c.pf))} 後，客人自己刪留言時，工具會自動跟著刪</span></div>
   ${lockedByOther?`<div class="warnbox">${esc(c.lock)} 正在處理這則留言。為避免重複回覆，請先與對方確認。 <button class="btn sm" data-act="takeover">我來接手</button></div>`:''}
   ${noAI?`<div class="warnbox"><b>這個品牌目前沒有可用的 AI</b>（額度用完、金鑰異常，或還沒設定）。你仍可以自己輸入回覆，或 <button class="btn sm" data-act="nav" data-v="ai">前往 AI 設定</button></div>`:''}
   ${eR.why==='備援'?`<div class="infobox">主要 AI 目前不能用，已自動改用備援：<b>${esc(eR.key.label)}</b>。</div>`:''}
@@ -843,7 +844,9 @@ function renderModal(){
   const M=S.modal,el=$('#modal');
   if(!M){el.innerHTML='';return}
   let body='';
-  if(M.type==='confirm'){
+  if(M.type==='busy'){
+    body=`<h3>${esc(M.title)}</h3><div style="margin:10px 0">${M.body}</div>`;
+  }else if(M.type==='confirm'){
     body=`<h3>${esc(M.title)}</h3><div style="margin:10px 0">${M.body}</div><div class="btns" style="justify-content:flex-end"><button class="btn" data-act="mclose">取消</button><button class="btn ${M.danger?'danger':'pri'}" data-act="mconfirm">${esc(M.ok||'確認')}</button></div>`;
   }else if(M.type==='delbrand'){
     const b=brandOf(M.id),n=S.comments.filter(c=>c.brand===M.id).length;
@@ -893,7 +896,12 @@ function renderModal(){
 }
 const openModal=m=>{S.modal=m;renderModal()};
 const closeModal=()=>{S.modal=null;renderModal()};
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.modal)closeModal()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.modal&&S.modal.type!=='busy')closeModal()});
+/* 先刪平台上的，平台回覆「成功」後才刪工具裡的（原型用計時器模擬） */
+function platformDel(c,what,done){
+  openModal({type:'busy',title:`正在刪除 ${pfName(c.pf)} 上的${what}…`,body:`<div class="sub">步驟 ① 先請 ${esc(pfName(c.pf))} 刪除 → ② ${esc(pfName(c.pf))} 回覆「已刪除」→ ③ 工具裡才跟著刪除。<span class="tag">僅介面</span></div>`});
+  setTimeout(()=>{closeModal();done(`・${pfName(c.pf)} 上已同步刪除`)},900);
+}
 
 /* ================= 動作 ================= */
 const VIEWS={home:vHome,inbox:vInbox,batch:vBatch,dash:vDash,insight:vInsight,usage:vUsage,brands:vBrands,brand:vBrand,wizard:vWizard,ig:vIG,ai:vAI,team:vTeam,rules:vRules,log:vLog};
@@ -949,10 +957,15 @@ const ACT={
  like(){const c=cm(S.sel);c.status='無需處理';c.lock=null;logAdd(S.me,'按讚',`${c.u}：${c.text.slice(0,18)}`);toast('已按讚並標記為不用處理');renderList();renderDetail();renderNav()},
  skip(){const c=cm(S.sel);c.status='無需處理';c.lock=null;logAdd(S.me,'標記不用處理',`${c.u}：${c.text.slice(0,18)}`);renderList();renderDetail();renderNav()},
  follow(){const c=cm(S.sel);c.follow=!c.follow;logAdd(S.me,c.follow?'稍後追蹤':'取消追蹤',c.u);toast(c.follow?'已加入稍後追蹤':'已取消追蹤');renderDetail()},
+ simdel(){const c=cm(S.sel);if(!c)return;
+  const ours=c.sent.map(r=>`我方回覆（${r.by}）：${r.t}`).join('；');
+  S.comments=S.comments.filter(x=>x!==c);S.sel=null;S.open=false;
+  logAdd('系統','留言已被刪除',`${c.pf}「${c.post}」：有一則留言被刪除（內容不保留）${ours?'；'+ours:''}`,true);
+  toast('對方已刪除留言，工具裡也跟著移除了');render()},
  retract(el){const c=cm(S.sel),r=c.sent[+el.dataset.i];if(!r||!canRetract(r)){toast('你只能收回自己寫的回覆');return}
-  openModal({type:'confirm',title:'收回這則回覆？',body:`收回後，<b>${esc(pfName(c.pf))} 上的這則回覆也會一起刪除</b>，工具裡也會消失，無法復原。<span class="tag">僅介面</span><div class="sub" style="margin-top:6px">操作紀錄只會記下誰、何時、在哪篇貼文收回，不會保留回覆內容。</div>`,ok:'收回',danger:1,fn(){const i=c.sent.indexOf(r);if(i>-1)c.sent.splice(i,1);if(!c.sent.length)c.by=null;else c.by=c.sent[c.sent.length-1].by;logAdd(S.me,'收回回覆',`${c.pf}「${c.post}」`);closeModal();toast(`已收回，${pfName(c.pf)} 上也已刪除`);renderList();renderDetail();renderNav()}})},
+  openModal({type:'confirm',title:'收回這則回覆？',body:`收回後，<b>${esc(pfName(c.pf))} 上的這則回覆也會一起刪除</b>，工具裡也會消失，無法復原。<span class="tag">僅介面</span><div class="sub" style="margin-top:6px">操作紀錄只會記下誰、何時、在哪篇貼文收回，不會保留回覆內容。</div>`,ok:'收回',danger:1,fn(){platformDel(c,'回覆',sync=>{const i=c.sent.indexOf(r);if(i>-1)c.sent.splice(i,1);c.by=c.sent.length?c.sent[c.sent.length-1].by:null;logAdd(S.me,'收回回覆',`${c.pf}「${c.post}」${sync}`);toast(`已收回，${pfName(c.pf)} 上也已刪除`);render()})}})},
  cdel(){const c=cm(S.sel);if(!c||noDelete(c))return;if(!canDelete(c)){toast('你只能刪除自己負責品牌的留言');return}
-  openModal({type:'confirm',title:'刪除這則客人留言？',body:`刪除後，<b>${esc(pfName(c.pf))} 上的這則留言也會一起刪除</b>，工具裡也會消失，無法復原。<span class="tag">僅介面</span><div class="sub" style="margin-top:6px">適合處理廣告、洗版、惡意留言。操作紀錄只會記下誰、何時、在哪篇貼文刪除，不會保留留言內容和留言者名稱。</div>`,ok:'確定刪除',danger:1,fn(){S.comments=S.comments.filter(x=>x!==c);S.sel=null;S.open=false;logAdd(S.me,'刪除留言',`${c.pf}「${c.post}」`);closeModal();toast(`已刪除，${pfName(c.pf)} 上也已刪除`);render()}})},
+  openModal({type:'confirm',title:'刪除這則客人留言？',body:`刪除後，<b>${esc(pfName(c.pf))} 上的這則留言也會一起刪除</b>，工具裡也會消失，無法復原。<span class="tag">僅介面</span><div class="sub" style="margin-top:6px">適合處理廣告、洗版、惡意留言。操作紀錄只會記下誰、何時、在哪篇貼文刪除，不會保留留言內容和留言者名稱。</div>`,ok:'確定刪除',danger:1,fn(){platformDel(c,'留言',sync=>{S.comments=S.comments.filter(x=>x!==c);if(S.sel===c.id){S.sel=null;S.open=false}logAdd(S.me,'刪除留言',`${c.pf}「${c.post}」${sync}`);toast(`已刪除，${pfName(c.pf)} 上也已刪除`);render()})}})},
  hide(){const c=cm(S.sel);if(!c._cf){c._cf=true;renderDetail();return}c._cf=false;c.status='無需處理';c.lock=null;logAdd(S.me,'隱藏留言',`${c.u}：${c.text.slice(0,18)}（人工確認）`);toast('已隱藏留言');renderList();renderDetail();renderNav()},
  evt(el){S.f={pf:'all',st:'all',pri:'all',sla:'all',type:el.dataset.t,ai:false,q:''};S.view='inbox';render()},
  bsel(el){S.batchSel=el.dataset.g;render()},
@@ -1039,7 +1052,7 @@ const ACT={
  },
  /* 共用 */
  mclose(){closeModal()},
- mmask(el,e){if(e.target===el)closeModal()},
+ mmask(el,e){if(e.target===el&&S.modal.type!=='busy')closeModal()},
  mconfirm(){S.modal.fn()},
  exok(el){const i=S.pendingEx.findIndex(e=>e.id==el.dataset.id);if(i>-1){logAdd(S.me,'收錄回覆範例',S.pendingEx[i].q);S.pendingEx.splice(i,1);toast('已收錄為 AI 參考範例');render()}},
  exno(el){const i=S.pendingEx.findIndex(e=>e.id==el.dataset.id);if(i>-1){S.pendingEx.splice(i,1);render()}}
