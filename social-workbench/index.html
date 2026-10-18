@@ -730,7 +730,7 @@ function vBrand(m){
   const cfg=S.brandCfg[b.id]=S.brandCfg[b.id]||{personality:'',formal:50,humor:30,len:50,emoji:'少量',addr:'您',words:'',ban:'',nopromise:''};
   const prof=S.profiles[b.id]||{},items=S.kb.filter(k=>k.b===b.id);
   const igs=S.ig.filter(i=>i.brand===b.id),ba=S.brandAI[b.id]||{};
-  const fld=[['name','品牌名稱'],['category','賣什麼'],['personality','品牌個性'],['addr','稱呼客人'],['emoji','表情符號'],['ban','不想出現的字詞'],['products','代表商品與價格'],['hours','客服時間'],['ship','出貨與配送'],['refund','退換貨與保固'],['complaint','客訴處理方式'],['contact','真人聯絡窗口']].filter(f=>prof[f[0]]&&String(prof[f[0]]).length);
+  const fld=[['name','品牌名稱'],['category','賣什麼'],['personality','品牌個性'],['addr','稱呼客人'],['emoji','表情符號'],['ban','不想出現的字詞'],['products','代表商品與價格'],['hours','客服時間'],['ship','出貨與配送'],['refund','退換貨與保固'],['complaint','客訴處理方式'],['audience','主要客人'],['nopromise','AI 不可答應的事'],['contact','真人聯絡窗口']].filter(f=>{const v=ans(prof,f[0]);return v&&String(v).length});
   m.innerHTML=`<div class="page"><button class="btn" data-act="bback" style="margin-bottom:12px">← 回到品牌列表</button>
   <div class="hd"><div><h2><span class="dot" style="background:${b.c};width:14px;height:14px"></span> ${esc(b.name)}</h2></div><div class="btns" style="margin:0"><button class="btn" data-act="bsurvey" data-id="${b.id}">📝 重新填寫品牌問卷</button></div></div>
   <div class="card"><h3>① 基本資料</h3><div class="grid two"><div class="field"><label>品牌名稱</label><input type="text" data-in="bname" value="${esc(b.name)}"></div><div class="field"><label>簡介</label><input type="text" data-in="bdesc" value="${esc(b.desc||'')}" placeholder="例：居家小家電"></div></div>
@@ -750,7 +750,7 @@ function vBrand(m){
     `<div class="ck"><label class="sw"><input type="checkbox" data-in="kbon" data-id="${k.id}" ${k.on?'checked':''} aria-label="讓 AI 使用這筆資料"><i></i></label><span class="tag">${esc(k.cat)}</span><span style="flex:1;${k.on?'':'opacity:.5'}">${esc(k.title)}</span><button class="btn sm" data-act="kbedit" data-id="${k.id}">編輯</button><button class="btn sm danger" data-act="kbdel" data-id="${k.id}">刪除</button></div>`).join(''):'<div class="sub">目前沒有資料。可以在下方新增，或重新填寫問卷。</div>'}
    <div class="btns"><select id="kbCat" aria-label="分類">${['產品','價格','服務','售後','政策','活動','教學','常見問題'].map(x=>`<option>${x}</option>`).join('')}</select><input type="text" id="kbNew" placeholder="新增一筆，例如：保固期為購買日起 12 個月" style="flex:1;min-width:200px" aria-label="新增資料"><button class="btn pri" data-act="kbadd">新增</button>${items.length?`<button class="btn danger" data-act="kbclear">全部刪除</button>`:''}</div></div>
   <div class="card"><h3>④ 問卷裡填過的資料</h3><div class="sub" style="margin-bottom:8px">這是新增品牌時回答的內容。按「清除」會把這個欄位和由它產生的資料一起刪掉。</div>
-   ${fld.length?fld.map(f=>`<div class="ck"><b style="width:130px;flex:none">${f[1]}</b><span style="flex:1;white-space:pre-line">${esc(Array.isArray(prof[f[0]])?prof[f[0]].join('、'):prof[f[0]])}</span><button class="btn sm danger" data-act="pfclear" data-k="${f[0]}">清除</button></div>`).join(''):'<div class="sub">沒有問卷資料。</div>'}</div>
+   ${fld.length?fld.map(f=>`<div class="ck"><b style="width:130px;flex:none">${f[1]}</b><span style="flex:1;white-space:pre-line">${esc(Array.isArray(ans(prof,f[0]))?ans(prof,f[0]).join('、'):ans(prof,f[0]))}</span><button class="btn sm danger" data-act="pfclear" data-k="${f[0]}">清除</button></div>`).join(''):'<div class="sub">沒有問卷資料。</div>'}</div>
   <div class="card"><h3>⑤ 連接的帳號與 AI</h3>
    <dl class="kv" style="grid-template-columns:110px 1fr"><dt>IG 帳號</dt><dd>${igs.length?igs.map(i=>esc(i.handle)+'（'+i.kind+'）').join('、'):'尚未連接'} <button class="btn sm" data-act="nav" data-v="ig">前往連接</button></dd>
    <dt>判斷留言用</dt><dd>${ba.classify&&aiKey(ba.classify)?esc(aiKey(ba.classify).label):'未選'}</dd><dt>寫回覆用</dt><dd>${ba.reply&&aiKey(ba.reply)?esc(aiKey(ba.reply).label):'未選'}</dd><dt>備援</dt><dd>${ba.backup&&aiKey(ba.backup)?esc(aiKey(ba.backup).label):'未選'} <button class="btn sm" data-act="nav" data-v="ai">前往 AI 設定</button></dd></dl></div>
@@ -762,10 +762,10 @@ const WS=['品牌與語氣','商品資料','服務與規則'];
 const Q=[
  {id:'name',s:0,t:'text',l:'品牌名稱',h:'客人在 IG 上看到的名字',ph:'例：暖屋生活',req:1},
  {id:'category',s:0,t:'text',l:'你們主要賣什麼？（一句話）',h:'讓 AI 知道這個品牌在做什麼',ph:'例：居家小家電、寵物用品'},
- {id:'audience',s:0,t:'multi',l:'主要客人是誰？',h:'可以選多個',o:['年輕族群','上班族','家庭','長輩','毛孩飼主','企業客戶']},
- {id:'personality',s:0,t:'single',l:'你希望品牌聽起來像什麼樣的人？',h:'AI 會照這個個性寫回覆',o:['親切鄰家','專業可靠','活潑有趣','優雅質感','簡潔俐落']},
- {id:'addr',s:0,t:'single',l:'怎麼稱呼客人？',o:['您','你','親','姓名+您']},
- {id:'emoji',s:0,t:'single',l:'回覆要用表情符號嗎？',o:['不使用','少量','常用']},
+ {id:'audience',s:0,t:'multi',l:'主要客人是誰？',h:'可以選多個',o:['年輕族群','上班族','家庭','長輩','毛孩飼主','企業客戶','其他']},
+ {id:'personality',s:0,t:'single',l:'你希望品牌聽起來像什麼樣的人？',h:'AI 會照這個個性寫回覆',o:['親切鄰家','專業可靠','活潑有趣','優雅質感','簡潔俐落','其他']},
+ {id:'addr',s:0,t:'single',l:'怎麼稱呼客人？',o:['您','你','親','姓名+您','其他']},
+ {id:'emoji',s:0,t:'single',l:'回覆要用表情符號嗎？',o:['不使用','少量','常用','其他']},
  {id:'ban',s:0,t:'text',l:'有哪些字詞不想出現？',h:'用頓號分隔，可以先跳過',ph:'例：最便宜、保證、絕對'},
  {id:'products',s:1,t:'area',l:'代表商品與價格',h:'一行一個，客人問「多少錢」時 AI 會用這裡的資料',ph:'X2 淨水器 NT$2,980\n折疊烘衣機 NT$3,490'},
  {id:'sell',s:1,t:'area',l:'商品最大的賣點是什麼？',ph:'例：免安裝、一年保固、靜音'},
@@ -774,10 +774,14 @@ const Q=[
  {id:'hours',s:2,t:'text',l:'客服服務時間',ph:'例：週一至週五 10:00–18:00'},
  {id:'ship',s:2,t:'area',l:'出貨與配送說明',ph:'例：下單後 3 個工作天內出貨'},
  {id:'refund',s:2,t:'area',l:'退換貨與保固規定',ph:'例：7 天鑑賞期；保固一年'},
- {id:'complaint',s:2,t:'single',l:'遇到客訴時，希望怎麼做？',o:['一律轉給真人處理','AI 先致歉並請客人私訊，再轉真人','由我決定（每次人工判斷）']},
+ {id:'complaint',s:2,t:'single',l:'遇到客訴時，希望怎麼做？',o:['一律轉給真人處理','AI 先致歉並請客人私訊，再轉真人','由我決定（每次人工判斷）','其他']},
  {id:'nopromise',s:2,t:'multi',l:'有哪些事 AI 不可以自己答應？',h:'AI 遇到這些只會請客人私訊或轉真人',o:['退款','補償','折扣','出貨時間','功效或醫療說法','其他']},
  {id:'contact',s:2,t:'text',l:'真人聯絡窗口',h:'需要轉給真人時，客人會看到這個',ph:'例：Email、LINE、電話'}
 ];
+/* 選了「其他」就用自己填的文字；多選題的「其他」可以用頓號填好幾個 */
+const ans=(a,id)=>{const v=a[id],o=String(a[id+'_other']||'').trim();
+  if(Array.isArray(v))return v.flatMap(x=>x==='其他'?(o?o.split(/[、,，]/).map(t=>t.trim()).filter(Boolean):[]):[x]);
+  return v==='其他'?o:v;};
 const PERS={'親切鄰家':[35,55,'溫暖、親切的鄰家朋友'],'專業可靠':[70,10,'可靠、專業的顧問'],'活潑有趣':[20,75,'活潑、有趣的夥伴'],'優雅質感':[65,25,'優雅、有質感'],'簡潔俐落':[60,10,'簡潔、有效率']};
 function startWiz(mode,bid){
   S.wiz={mode,bid,step:0,a:mode==='edit'?JSON.parse(JSON.stringify(S.profiles[bid]||{})):{addr:'您',emoji:'少量',complaint:'AI 先致歉並請客人私訊，再轉真人'}};
@@ -785,8 +789,8 @@ function startWiz(mode,bid){
   S.view='wizard';render();
 }
 function sample(a){
-  const addr=a.addr||'您',emo=a.emoji==='常用'?' 😊':a.emoji==='少量'?' 🙂':'';
-  const op={'親切鄰家':`${addr}好～謝謝${addr}的詢問`,'專業可靠':`${addr}好，感謝${addr}的詢問`,'活潑有趣':`嗨嗨！謝謝${addr}的提問`,'優雅質感':`${addr}好，感謝${addr}的關注`,'簡潔俐落':`${addr}好`}[a.personality]||`${addr}好`;
+  const addr=ans(a,'addr')||'您',emo=a.emoji==='常用'?' 😊':a.emoji==='少量'?' 🙂':'';
+  const op={'親切鄰家':`${addr}好～謝謝${addr}的詢問`,'專業可靠':`${addr}好，感謝${addr}的詢問`,'活潑有趣':`嗨嗨！謝謝${addr}的提問`,'優雅質感':`${addr}好，感謝${addr}的關注`,'簡潔俐落':`${addr}好`}[ans(a,'personality')]||`${addr}好`;
   const prod=(a.products||'').split('\n')[0].trim()||'我們的商品';
   return `${op}！關於「${prod}」，詳細資訊可以到商品頁查看，有任何問題歡迎再問我們${emo}`;
 }
@@ -802,13 +806,14 @@ function vWizard(m){
     else if(q.t==='area')inp=`<textarea data-in="wq" data-id="${q.id}" placeholder="${esc(q.ph||'')}">${esc(v||'')}</textarea>`;
     else if(q.t==='single')inp=`<div class="choice">${q.o.map(o=>`<button class="cb ${v===o?'on':''}" data-act="wsingle" data-id="${q.id}" data-v="${esc(o)}">${o}</button>`).join('')}</div>`;
     else inp=`<div class="choice">${q.o.map(o=>`<button class="cb ${(v||[]).includes(o)?'on':''}" data-act="wmulti" data-id="${q.id}" data-v="${esc(o)}">${o}</button>`).join('')}</div>`;
+    if(q.o&&(q.t==='single'?v==='其他':(v||[]).includes('其他')))inp+=`<input type="text" data-in="wq" data-id="${q.id}_other" value="${esc(a[q.id+'_other']||'')}" placeholder="${q.t==='multi'?'請填寫，多個請用頓號（、）分隔':'請填寫你的答案'}" aria-label="${esc(q.l)}：其他" style="margin-top:8px">`;
     return `<div class="q"><label class="l">${q.l}${q.req?' <span class="tag danger">必填</span>':''}</label>${q.h?`<div class="h">${q.h}</div>`:''}${inp}</div>`;
   };
   const total=Q.length,answered=Q.filter(q=>{const v=a[q.id];return Array.isArray(v)?v.length:v&&String(v).trim()}).length;
   m.innerHTML=`<div class="page" style="max-width:760px"><div class="hd"><div><h2>${w.mode==='new'?'新增品牌':'重新填寫「'+esc(brandOf(w.bid).name)+'」的品牌問卷'}</h2><div class="sub">共 ${total} 題，約 5 分鐘。只有品牌名稱必填，其他可以先跳過，之後隨時補。</div></div><button class="btn" data-act="wcancel">取消</button></div>
   ${stepBar}
   ${last?`<div class="card"><h3>確認一下</h3><div class="sub" style="margin-bottom:10px">已填 ${answered} / ${total} 題。確認後會建立品牌，並把你填的資料整理成「AI 會參考的品牌資料」。</div>
-   <dl class="kv" style="grid-template-columns:110px 1fr"><dt>品牌名稱</dt><dd><b>${esc(a.name||'（還沒填）')}</b></dd><dt>賣什麼</dt><dd>${esc(a.category||'—')}</dd><dt>個性</dt><dd>${esc(a.personality||'—')}・稱呼「${esc(a.addr||'您')}」・表情符號：${esc(a.emoji||'—')}</dd><dt>客服時間</dt><dd>${esc(a.hours||'—')}</dd><dt>遇到客訴</dt><dd>${esc(a.complaint||'—')}</dd></dl>
+   <dl class="kv" style="grid-template-columns:110px 1fr"><dt>品牌名稱</dt><dd><b>${esc(a.name||'（還沒填）')}</b></dd><dt>賣什麼</dt><dd>${esc(a.category||'—')}</dd><dt>個性</dt><dd>${esc(ans(a,'personality')||'—')}・稱呼「${esc(ans(a,'addr')||'您')}」・表情符號：${esc(ans(a,'emoji')||'—')}</dd><dt>主要客人</dt><dd>${esc((ans(a,'audience')||[]).join('、')||'—')}</dd><dt>客服時間</dt><dd>${esc(a.hours||'—')}</dd><dt>遇到客訴</dt><dd>${esc(ans(a,'complaint')||'—')}</dd><dt>AI 不可答應</dt><dd>${esc((ans(a,'nopromise')||[]).join('、')||'—')}</dd></dl>
    <h4>AI 大概會這樣回覆「請問多少錢？」</h4><div class="bubble brandside" style="margin-left:0">${esc(sample(a))}</div><div class="sub" style="margin-top:6px">這只是依你的回答產生的示意，正式回覆會更貼近你填的商品資料。</div></div>`:`<div class="card">${qs.map(qHtml).join('')}</div>`}
   <div class="btns"><button class="btn" data-act="wprev" ${w.step===0?'disabled':''}>← 上一步</button>${last?`<button class="btn pri" data-act="wdone">${w.mode==='new'?'建立品牌':'儲存問卷'}</button>`:`<button class="btn pri" data-act="wnext">下一步 →</button>`}</div></div>`;
 }
@@ -816,7 +821,7 @@ function finishWiz(){
   const w=S.wiz,a=w.a;
   if(!String(a.name||'').trim()){toast('請先填品牌名稱');w.step=0;render();return}
   let id=w.bid;
-  const p=PERS[a.personality]||[50,30,a.personality||''];
+  const p=PERS[a.personality]||[50,30,ans(a,'personality')||''];
   if(w.mode==='new'){
     id='b'+(++S.seq);
     S.brands.push({id,name:a.name.trim(),c:PALETTE[S.brands.length%PALETTE.length],desc:a.category||''});
@@ -830,7 +835,7 @@ function finishWiz(){
   }
   S.profiles[id]=JSON.parse(JSON.stringify(a));
   const old=S.brandCfg[id]||{};
-  S.brandCfg[id]=Object.assign({},old,{personality:p[2]||old.personality||'',formal:p[0],humor:p[1],len:old.len??50,emoji:a.emoji||'少量',addr:a.addr||'您',ban:a.ban||'',nopromise:(a.nopromise||[]).join('、'),words:old.words||''});
+  S.brandCfg[id]=Object.assign({},old,{personality:p[2]||old.personality||'',formal:p[0],humor:p[1],len:old.len??50,emoji:ans(a,'emoji')||'少量',addr:ans(a,'addr')||'您',ban:a.ban||'',nopromise:(ans(a,'nopromise')||[]).join('、'),words:old.words||''});
   const add=(cat,title,field)=>S.kb.push({id:Date.now()+Math.random(),b:id,cat,title,on:true,d:'今天',src:'survey',field});
   String(a.products||'').split('\n').map(x=>x.trim()).filter(Boolean).forEach(x=>add('價格','商品與價格：'+x,'products'));
   if(a.sell)add('產品','商品賣點：'+a.sell,'sell');
@@ -839,7 +844,7 @@ function finishWiz(){
   if(a.hours)add('服務','客服時間：'+a.hours,'hours');
   if(a.ship)add('服務','出貨與配送：'+a.ship,'ship');
   if(a.refund)add('政策','退換貨與保固：'+a.refund,'refund');
-  if(a.complaint)add('政策','客訴處理：'+a.complaint,'complaint');
+  if(ans(a,'complaint'))add('政策','客訴處理：'+ans(a,'complaint'),'complaint');
   if(a.contact)add('服務','真人聯絡窗口：'+a.contact,'contact');
   S.wiz=null;S.bd=id;S.view='brand';S.kbEdit=null;
   toast(w.mode==='new'?'品牌已建立，AI 已經認識它了':'問卷已更新');render();
@@ -1003,6 +1008,7 @@ function doDelBrand(id){
   if(S.brand===id)S.brand='all';if(S.sel&&!cm(S.sel))S.sel=null;
   logAdd(S.me,'刪除品牌',b.name);closeModal();S.view='brands';toast('已刪除品牌「'+b.name+'」');render();
 }
+const focusOther=el=>{if(el.dataset.v!=='其他')return;const f=document.querySelector(`[data-in="wq"][data-id="${el.dataset.id}_other"]`);if(f)f.focus()};
 const ACT={
  nav(el){S.view=el.dataset.v;S.open=false;S.wiz=null;render()},
  brand(el){S.brand=el.dataset.v;S.sel=null;S.open=false;render()},
@@ -1061,10 +1067,10 @@ const ACT={
  kbsave(el){const k=S.kb.find(x=>x.id==el.dataset.id),v=$('#kbEd').value.trim();if(!v){toast('內容不能是空的');return}k.title=v;S.kbEdit=null;logAdd(S.me,'修改品牌資料',v.slice(0,24));toast('已儲存');render()},
  kbdel(el){const k=S.kb.find(x=>x.id==el.dataset.id);openModal({type:'confirm',title:'刪除這筆資料？',body:esc(k.title),ok:'刪除',danger:1,fn(){S.kb=S.kb.filter(x=>x.id!==k.id);logAdd(S.me,'刪除品牌資料',k.title.slice(0,24));closeModal();toast('已刪除');render()}})},
  kbclear(){const n=S.kb.filter(k=>k.b===S.bd).length;openModal({type:'confirm',title:'刪除全部品牌資料？',body:`這個品牌的 ${n} 筆資料都會被刪除，AI 之後就沒有資料可以參考。`,ok:'全部刪除',danger:1,fn(){S.kb=S.kb.filter(k=>k.b!==S.bd);logAdd(S.me,'清空品牌資料',brandOf(S.bd).name);closeModal();toast('已清空');render()}})},
- pfclear(el){const k=el.dataset.k,p=S.profiles[S.bd];openModal({type:'confirm',title:'清除這個欄位？',body:'問卷裡這個欄位的內容，以及由它產生的品牌資料都會被刪除。',ok:'清除',danger:1,fn(){delete p[k];S.kb=S.kb.filter(x=>!(x.b===S.bd&&x.src==='survey'&&x.field===k));logAdd(S.me,'清除問卷欄位',k);closeModal();toast('已清除');render()}})},
+ pfclear(el){const k=el.dataset.k,p=S.profiles[S.bd];openModal({type:'confirm',title:'清除這個欄位？',body:'問卷裡這個欄位的內容，以及由它產生的品牌資料都會被刪除。',ok:'清除',danger:1,fn(){delete p[k];delete p[k+'_other'];S.kb=S.kb.filter(x=>!(x.b===S.bd&&x.src==='survey'&&x.field===k));logAdd(S.me,'清除問卷欄位',k);closeModal();toast('已清除');render()}})},
  /* 問卷 */
- wsingle(el){S.wiz.a[el.dataset.id]=el.dataset.v;render()},
- wmulti(el){const a=S.wiz.a,id=el.dataset.id,v=el.dataset.v;a[id]=a[id]||[];a[id]=a[id].includes(v)?a[id].filter(x=>x!==v):a[id].concat(v);render()},
+ wsingle(el){S.wiz.a[el.dataset.id]=el.dataset.v;render();focusOther(el)},
+ wmulti(el){const a=S.wiz.a,id=el.dataset.id,v=el.dataset.v;a[id]=a[id]||[];a[id]=a[id].includes(v)?a[id].filter(x=>x!==v):a[id].concat(v);render();focusOther(el)},
  wnext(){const w=S.wiz;if(w.step===0&&!String(w.a.name||'').trim()){toast('請先填品牌名稱');return}w.step++;S._lv=null;render()},
  wprev(){S.wiz.step--;S._lv=null;render()},
  wdone(){finishWiz()},
